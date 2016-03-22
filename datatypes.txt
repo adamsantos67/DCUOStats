@@ -1,0 +1,213 @@
+alignment	2
+	alignment_id
+	name { lang }
+	
+aug_socket_color	17
+	aug_socket_color_id
+	name
+
+currency	25
+	currency_id
+	name { lang }
+	
+equipment_slot	19
+	equipment_slot_id
+	name
+
+feat	1576
+	feat_id
+	name { lang }
+	description { lang }
+	feat_category_id *
+	predicate
+	difficulty
+	feat_reward_id *
+	icon_id
+	image_path
+	
+feat_category 85
+	feat_category_id
+	category_name { lang }
+	parent_category_id *
+	ui_order_number
+
+feat_reward	4
+	feat_reward_id
+	difficulty
+	xp
+	
+gender	2
+	gender_id
+	name
+	
+item	20,756
+	item_id
+	code_name
+	name { lang }
+	minimum_level
+	item_level
+	charges
+	magic
+	meta
+	tech
+	alignment_id *
+	sale_value
+	stat_health_pool
+	stat_fatigue_pool
+	stat_basic_attack
+	stat_finisher_attack
+	stat_movement
+	stat_mitigation
+	quality
+	max_stack_size
+	stat_resilience
+	no_trade
+	bind_on_equip
+	unique
+	controller
+	tank
+	healer
+	male
+	female
+	manufacturer
+	dps
+	stat_power_pool
+	stat_heal
+	stat_power_heal
+	stat_dominance
+	no_sale
+	item_type
+	required_combat_rating
+	pvp_level
+	item_category_id *
+	aug_socket_color_id_1 *
+	aug_socket_color_id_2 *
+	icon_id
+	is_currency
+	image_path
+	
+item_category	70
+	item_category_id
+	category_name
+	parent_category_id *
+	code_name
+	name { lang }
+	
+movement_mode	3
+	movement_mode_id
+	name { lang }
+
+origin	3
+	origin_id
+	name { lang }
+	
+personality	7
+	personality_id
+	name { lang }
+
+power_source	11 (weapon)
+	power_source_id
+	name { lang }
+
+power_type	14
+	power_type_id
+	name { lang }
+
+quality	8
+	quality_id
+	name
+	
+region	509
+	region_id
+	name { lang }
+	
+title	58
+	title_id
+	format
+	name { lang }
+	
+world	2
+	world_id
+	name
+	
+auth_character
+
+auth_characters_house_item
+
+auth_characters_item
+
+char_id_mapping 
+	old_character_id
+	new_character_id *
+	
+character	27,777,618
+	character_id
+	world_id *
+	database_id
+	name
+	alignment_id *
+	gender_id *
+	power_type_id *
+	power_source_id *
+	movement_mode_id *
+	region_id *
+	level
+	origin_id *
+	personality_id *
+	active
+	combat_rating
+	pvp_combat_rating
+	current_health
+	current_power
+	deleted
+	max_health
+	max_power
+	defense
+	toughness
+	might
+	precision
+	restoration
+	vitalization
+	dominance
+	skill_points
+	max_feats
+	hash
+
+characters_active_feat
+	character_id *
+	feat_id *
+	
+characters_completed_feat
+	character_id *
+	feat_id *
+	
+characters_item
+	character_id *
+	world_id *
+	database_id
+	item_id *
+	equipment_slot_id *
+	quantity
+	is_bound
+	durability
+	item_number
+	aug_item_id_1 *
+	aug_item_id_2 *
+	aug_item_id_3 *
+	
+guild	465,891
+	world_id *
+	guild_id
+	name
+	lower_name
+	character_alignment_id *
+	
+guild_id_mapping
+	old_guild_id
+	new_guild_id *
+
+guild_roster
+	world_id *
+	guild_id *
+	character_id *
+	rank
