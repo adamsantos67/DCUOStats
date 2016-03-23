@@ -12,6 +12,9 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.aksantos.dcuocensus.models.CharCompletedFeat;
 import com.aksantos.dcuocensus.models.CharCompletedFeats;
 import com.aksantos.dcuocensus.models.CharIdMapping;
@@ -44,6 +47,8 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class CensusParser {
+    private static final Logger logger = LogManager.getLogger(CensusParser.class);
+
     private static final String rolePatternStr = "Has([a-zA-Z]*)Role";
     private static final String movementPatternStr = "HasMovementMode mode=([a-zA-Z]*)";
     private static final String factionPatternStr = "Is(Hero|Villain)";
@@ -65,11 +70,11 @@ public class CensusParser {
                     feats.add(compFeat.getFeatId());
                 }
             } catch (JsonParseException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (JsonMappingException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (IOException pe) {
-                System.out.println("IOException while getting feats for " + charName);
+                logger.error("IOException while getting feats for " + charName, pe);
             }
         }
         return feats;
@@ -84,11 +89,11 @@ public class CensusParser {
                     count = countVal.getCount();
                 }
             } catch (JsonParseException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (JsonMappingException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (IOException e) {
-                System.out.println("IOException getting count for " + featName);
+                logger.error("IOException getting count for " + featName, e);
             }
         }
         return count;
@@ -104,11 +109,11 @@ public class CensusParser {
                     oldId = mappingList.get(0).getOldId();
                 }
             } catch (JsonParseException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (JsonMappingException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             }
         }
         return oldId;
@@ -125,11 +130,11 @@ public class CensusParser {
                     rewards.put(reward.getId(), reward);
                 }
             } catch (JsonParseException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (JsonMappingException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             }
         }
         return rewards;
@@ -144,11 +149,11 @@ public class CensusParser {
                 List<CharactersItem> charList = charactersItems.getCharactersItemList();
                 charItems.addAll(charList);
             } catch (JsonParseException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (JsonMappingException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             }
             Collections.sort(charItems);
         }
@@ -213,11 +218,11 @@ public class CensusParser {
                     character.setRole(character.getPower().getRole());
                 }
             } catch (JsonParseException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (JsonMappingException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             }
         }
         return character;
@@ -276,11 +281,11 @@ public class CensusParser {
                     feats.put(feat.getId(), feat);
                 }
             } catch (JsonParseException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (JsonMappingException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             }
         }
         return feats;
@@ -310,11 +315,11 @@ public class CensusParser {
                     items.put(item.getId(), item);
                 }
             } catch (JsonParseException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (JsonMappingException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             }
         }
         return items;
@@ -342,11 +347,11 @@ public class CensusParser {
                     categories.put(featCategory.getId(), featCategory);
                 }
             } catch (JsonParseException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (JsonMappingException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             }
         }
         return categories;
@@ -362,11 +367,11 @@ public class CensusParser {
                     categories.put(itemCategory.getId(), itemCategory);
                 }
             } catch (JsonParseException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (JsonMappingException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             }
         }
         return categories;
@@ -382,11 +387,11 @@ public class CensusParser {
                     personalityMap.put(personality.getId(), personality);
                 }
             } catch (JsonParseException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (JsonMappingException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             }
         }
         return personalityMap;

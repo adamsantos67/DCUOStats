@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.examples.AddDimensionedImage;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -43,6 +45,8 @@ import com.aksantos.dcuocensus.models.enums.Power;
 import com.aksantos.dcuocensus.models.enums.Role;
 
 public class XLSXWriter {
+    private static final Logger logger = LogManager.getLogger(XLSXWriter.class);
+
     private static final String STYLE_STARTS[] = { "Collect all styles in the ", "Collect all styles of the ",
             "Collect all items in the ", " style in the ", " styles in the ", "Collect a complete ",
             "Collect all styles for the " };
@@ -135,13 +139,13 @@ public class XLSXWriter {
 
             wb.write(neededFile);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Exception: " + e, e);
         } finally {
             if (wb != null) {
                 try {
                     wb.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error("Exception: " + e, e);
                 }
                 wb = null;
             }
@@ -150,7 +154,7 @@ public class XLSXWriter {
                 try {
                     neededFile.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error("Exception: " + e, e);
                 }
                 neededFile = null;
             }
@@ -274,27 +278,27 @@ public class XLSXWriter {
         // 168, 232, 255 - 30, 55, 77
         // A8E8FF 1E374D
         fillLtBlue = GradientFill.createGradient(wb, STGradientType.LINEAR, "A8E8FF", "1E374D");
-        System.out.println("fillLtBlue: " + fillLtBlue);
+        logger.debug("fillLtBlue: " + fillLtBlue);
 
         // 202, 243, 111 - 17, 40, 46
         // CAF36F 11282E
         fillGreen = GradientFill.createGradient(wb, STGradientType.LINEAR, "CAF36F", "11282E");
-        System.out.println("fillGreen: " + fillGreen);
+        logger.debug("fillGreen: " + fillGreen);
 
         // 17, 76, 230 - 0, 6, 80
         // 114CE6 000650
         fillDkBlue = GradientFill.createGradient(wb, STGradientType.LINEAR, "114CE6", "000650");
-        System.out.println("fillDkBlue: " + fillDkBlue);
+        logger.debug("fillDkBlue: " + fillDkBlue);
 
         // 130, 20, 215 - 45, 1, 112
         // 8214D7 2D0170
         fillPurple = GradientFill.createGradient(wb, STGradientType.LINEAR, "8214D7", "2D0170");
-        System.out.println("fillPurple: " + fillPurple);
+        logger.debug("fillPurple: " + fillPurple);
 
         // 251, 235, 87 - 241, 206, 80 - 53, 42, 0
         // FBEB57 F1CE50 352A00
         fillGold = GradientFill.createGradient(wb, STGradientType.LINEAR, "FCEC63", "5A440B");
-        System.out.println("fillGold: " + fillGold);
+        logger.debug("fillGold: " + fillGold);
 
         STGradientType.Enum type = STGradientType.LINEAR;
         fillAtomic = GradientFill.createGradient(wb, type, "ffffff"/* "dcc554" */, "c9740c", cs1);
@@ -317,12 +321,12 @@ public class XLSXWriter {
         List<XSSFCellFill> fills = stylesTable.getFills();
         for (int i = 0; i < fills.size(); i++) {
             XSSFCellFill fill = fills.get(i);
-            System.out.println("Fill[" + i + "]: " + fill.getCTFill());
+            logger.debug("Fill[" + i + "]: " + fill.getCTFill());
         }
 
         for (int idx = 0; idx < stylesTable.getNumCellStyles(); idx++) {
             CTXf xf = stylesTable.getCellXfAt(idx);
-            System.out.println("xf[" + idx + "]: " + xf);
+            logger.debug("xf[" + idx + "]: " + xf);
         }
     }
 
@@ -420,7 +424,7 @@ public class XLSXWriter {
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Exception: " + e, e);
             }
         } else {
             c = (XSSFCell) r.createCell(cellnum++);
@@ -774,13 +778,13 @@ public class XLSXWriter {
     }
 
     private void writeFeats(Collection<Feat> sortedFeats, String type) {
-        System.out.println("Writing " + type + " Feats Excel file.");
+        logger.info("Writing " + type + " Feats Excel file.");
 
         Sheet sheets[] = { wb.createSheet(type), wb.createSheet("Villains " + type), wb.createSheet("Heroes " + type) };
 
         writeFeats(sortedFeats, sheets);
 
-        System.out.println("Finished writing " + type + " Feats Excel file.");
+        logger.info("Finished writing " + type + " Feats Excel file.");
     }
 
     private void writeFeats(Collection<Feat> sortedFeats, Sheet[] sheets) {
@@ -843,7 +847,7 @@ public class XLSXWriter {
                                     new File("Icon" + feat.getIconId() + ".png").toURI().toURL(), 24, 24,
                                     AddDimensionedImage.EXPAND_ROW_AND_COLUMN);
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            logger.error("Exception: " + e, e);
                         }
                     } else {
                         c = r.createCell(cellnum++);
@@ -1110,8 +1114,7 @@ public class XLSXWriter {
                 }
             }
         } catch (Exception e) {
-            System.out.println("Caught exception formatting " + feat.getNameEn() + ": " + feat.getDescriptionEn());
-            e.printStackTrace();
+            logger.error("Caught exception formatting " + feat.getNameEn() + ": " + feat.getDescriptionEn(), e);
         }
         c.setCellValue(rts);
     }

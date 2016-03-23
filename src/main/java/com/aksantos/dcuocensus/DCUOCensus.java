@@ -28,6 +28,9 @@ import java.util.TreeSet;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.aksantos.dcuocensus.models.Character;
 import com.aksantos.dcuocensus.models.CharactersItem;
 import com.aksantos.dcuocensus.models.Feat;
@@ -48,7 +51,9 @@ import com.aksantos.dcuocensus.models.enums.Origin;
  * Hello world!
  *
  */
-public class App {
+public class DCUOCensus {
+    private static final Logger logger = LogManager.getLogger(DCUOCensus.class);
+    
     private static final String CHARACTERS_INI = "characters.ini";
     private static final String ALL_FEATS_SER = "allFeats.ser";
     private static final String ALL_ITEMS_SER = "allItems.ser";
@@ -86,9 +91,9 @@ public class App {
     private final Set<Long> iconIds = new TreeSet<Long>();
 
     public static void main(String[] args) {
-        App app = new App();
+        DCUOCensus app = new DCUOCensus();
         app.process();
-        System.out.println("Done!");
+        logger.info("Done!");
     }
 
     private void process() {
@@ -115,11 +120,11 @@ public class App {
 
             processUnlockableFeats(sortedCharacters, feats, featsCompleted, xlsxWriter);
 
-            System.out.println("Total Feats: " + feats.size());
-            System.out.println("Needed Feats: " + featsNeeded.size());
-            System.out.println((feats.size() - featsNeeded.size()) * 100 / feats.size() + "% complete.");
+            logger.info("Total Feats: " + feats.size());
+            logger.info("Needed Feats: " + featsNeeded.size());
+            logger.info((feats.size() - featsNeeded.size()) * 100 / feats.size() + "% complete.");
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception: " + e, e);
         } finally {
             xlsxWriter.writeFile();
         }
@@ -172,7 +177,7 @@ public class App {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception: " + e, e);
         }
     }
 
@@ -195,8 +200,7 @@ public class App {
                 }
 
             } catch (Exception e) {
-                System.out.println("Exception for " + character.getName() + ": " + e);
-                e.printStackTrace();
+                logger.error("Exception for " + character.getName() + ": " + e, e);
             }
         }
     }
@@ -242,8 +246,8 @@ public class App {
         try {
             File file = new File(ALL_FEATS_SER);
             long now = System.currentTimeMillis();
-            System.out.println("Now: " + now);
-            System.out.println("Mod: " + file.lastModified());
+            logger.debug("Now: " + now);
+            logger.debug("Mod: " + file.lastModified());
             if (file.lastModified() > (now - 1000 * 60 * 60 * 24)) {
                 InputStream streamIn = new FileInputStream(ALL_FEATS_SER);
                 objStreamIn = new ObjectInputStream(streamIn);
@@ -253,13 +257,13 @@ public class App {
                 }
             }
         } catch (ClassNotFoundException e) {
-            System.out.println(ALL_FEATS_SER + " is incompatible with this version. Reading feats from DCUO.");
+            logger.warn(ALL_FEATS_SER + " is incompatible with this version. Reading feats from DCUO.");
         } catch (FileNotFoundException fnfe) {
-            System.out.println(ALL_FEATS_SER + " file not found. Reading feats from DCUO.");
+            logger.warn(ALL_FEATS_SER + " file not found. Reading feats from DCUO.");
         } catch (InvalidClassException fnfe) {
-            System.out.println(ALL_FEATS_SER + " is incompatible with this version. Reading feats from DCUO.");
+            logger.warn(ALL_FEATS_SER + " is incompatible with this version. Reading feats from DCUO.");
         } catch (IOException ioe) {
-            ioe.printStackTrace();
+            logger.error("Exception: " + ioe, ioe);
         } finally {
             if (objStreamIn != null) {
                 try {
@@ -283,13 +287,13 @@ public class App {
                 items = (Map<Long, Item>) obj;
             }
         } catch (ClassNotFoundException e) {
-            System.out.println(ALL_ITEMS_SER + " is incompatible with this version. Reading items from DCUO.");
+            logger.warn(ALL_ITEMS_SER + " is incompatible with this version. Reading items from DCUO.");
         } catch (FileNotFoundException fnfe) {
-            System.out.println(ALL_ITEMS_SER + " file not found. Reading items from DCUO.");
+            logger.warn(ALL_ITEMS_SER + " file not found. Reading items from DCUO.");
         } catch (InvalidClassException fnfe) {
-            System.out.println(ALL_ITEMS_SER + " is incompatible with this version. Reading items from DCUO.");
+            logger.warn(ALL_ITEMS_SER + " is incompatible with this version. Reading items from DCUO.");
         } catch (IOException ioe) {
-            ioe.printStackTrace();
+            logger.error("Exception: " + ioe, ioe);
         } finally {
             if (objStreamIn != null) {
                 try {
@@ -317,10 +321,10 @@ public class App {
         Set<Character> sortedCharacters = new TreeSet<Character>(new CharacterComparator());
         sortedCharacters.addAll(characters.values());
 
-        System.out.println("id" + delim + "name" + delim + "level" + delim + "CR" + delim + "SP" + delim + "Power"
+        logger.info("id" + delim + "name" + delim + "level" + delim + "CR" + delim + "SP" + delim + "Power"
                 + delim + "Movement" + delim + "Faction" + delim + "Personality" + delim + "Gender" + delim + "Origin");
         for (Character character : sortedCharacters) {
-            System.out.println(character.getId() + delim + character.getName() + delim + character.getLevel() + delim
+            logger.info(character.getId() + delim + character.getName() + delim + character.getLevel() + delim
                     + character.getCombatRating() + delim + character.getSkillPoints() + delim + character.getPower()
                     + delim + character.getMovementMode() + delim + character.getAlignment() + delim
                     + character.getPersonality().getNameEn() + delim + character.getGender() + delim + character.getOrigin());
@@ -341,7 +345,7 @@ public class App {
         List<CharactersItem> charItems = parser.parseCharacterItems(new URL(characterItemsUrl + character.getId()));
         character.setCharacterItems(charItems);
 
-        System.out.println(character.getName() + " has " + charItems.size() + " items.");
+        logger.debug(character.getName() + " has " + charItems.size() + " items.");
         for (CharactersItem charItem : charItems) {
             Item item = null;
             if (items != null) {
@@ -355,10 +359,10 @@ public class App {
             }
             if (item != null) {
                 getIcon(item.getIconId(), item.getImagePath());
-                System.out.println(EquipmentSlot.getById(charItem.getEquipmentSlotId()) + delim + item.getNameEn()
+                logger.debug(EquipmentSlot.getById(charItem.getEquipmentSlotId()) + delim + item.getNameEn()
                         + delim + item.getItemLevel());
             } else {
-                System.out.println(EquipmentSlot.getById(charItem.getEquipmentSlotId()) + delim + charItem.getItemId());
+                logger.debug(EquipmentSlot.getById(charItem.getEquipmentSlotId()) + delim + charItem.getItemId());
             }
         }
     }
@@ -373,7 +377,7 @@ public class App {
     }
 
     private void getCompletedCounts(Map<Long, Feat> feats) {
-        System.out.println("Getting completed feat counts.");
+        logger.info("Getting completed feat counts.");
 
         Feat firstFeat = feats.get(JAILBIRD_FEAT_ID);
         if (firstFeat == null || firstFeat.getCompleted() == 0) {
@@ -386,9 +390,9 @@ public class App {
 
             saveFeats(feats);
         } else {
-            System.out.println("Feat completed counts already loaded.");
+            logger.info("Feat completed counts already loaded.");
         }
-        System.out.println("Finished getting completed feat counts.");
+        logger.info("Finished getting completed feat counts.");
     }
 
     private void getIcon(long iconId, String path) {
@@ -407,7 +411,7 @@ public class App {
             objOutStream = new ObjectOutputStream(fout);
             objOutStream.writeObject(feats);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Exception: " + e, e);
         } finally {
             if (objOutStream != null) {
                 try {
@@ -425,7 +429,7 @@ public class App {
             objOutStream = new ObjectOutputStream(fout);
             objOutStream.writeObject(items);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Exception: " + e, e);
         } finally {
             if (objOutStream != null) {
                 try {
@@ -442,8 +446,7 @@ public class App {
 //            String out = HtmlReader.getHTML(characterFeatCountUrl + feat.getId(), feat.getNameEn());
             count = parser.parseCount(new URL(characterFeatCountUrl + feat.getId()), feat.getNameEn());
         } catch (Exception e) {
-            System.out.println("Failed due to exception getting completed count for " + feat.getNameEn());
-            e.printStackTrace();
+            logger.error("Failed due to exception getting completed count for " + feat.getNameEn(), e);
         }
         return count;
     }
@@ -687,7 +690,7 @@ public class App {
                         image.getHeight() + insets.top + insets.bottom);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception: " + e, e);
         }
     }
 
@@ -712,7 +715,7 @@ public class App {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception: " + e, e);
         }
         return retval;
     }
@@ -729,7 +732,7 @@ public class App {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception: " + e, e);
         }
     }
 
@@ -746,7 +749,7 @@ public class App {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Exception: " + e, e);
         } finally {
             if (br != null) {
                 try {

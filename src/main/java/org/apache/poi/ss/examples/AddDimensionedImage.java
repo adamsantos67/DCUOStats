@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Locale;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.ClientAnchor;
@@ -200,6 +202,7 @@ import org.apache.poi.util.IOUtils;
 *               continue to rectify this issue.
 */
 public class AddDimensionedImage {
+    private static final Logger logger = LogManager.getLogger(AddDimensionedImage.class);
 
  // Four constants that determine how - and indeed whether - the rows
  // and columns an image may overlie should be expanded to accomodate that
@@ -834,16 +837,14 @@ public class AddDimensionedImage {
          workbook.write(fos);
      }
      catch(FileNotFoundException fnfEx) {
-         System.out.println("Caught an: " + fnfEx.getClass().getName());
-         System.out.println("Message: " + fnfEx.getMessage());
-         System.out.println("Stacktrace follows...........");
-         fnfEx.printStackTrace(System.out);
+         logger.error("Caught an: " + fnfEx.getClass().getName());
+         logger.error("Message: " + fnfEx.getMessage());
+         logger.error("Stacktrace follows...........", fnfEx);
      }
      catch(IOException ioEx) {
-         System.out.println("Caught an: " + ioEx.getClass().getName());
-         System.out.println("Message: " + ioEx.getMessage());
-         System.out.println("Stacktrace follows...........");
-         ioEx.printStackTrace(System.out);
+         logger.error("Caught an: " + ioEx.getClass().getName());
+         logger.error("Message: " + ioEx.getMessage());
+         logger.error("Stacktrace follows...........", ioEx);
      }
      finally {
          if(fos != null) {
