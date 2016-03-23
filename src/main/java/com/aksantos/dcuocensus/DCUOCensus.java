@@ -81,6 +81,7 @@ public class DCUOCensus {
 
     private static final String imageUrl = serviceHost + "/files/dcuo/images/character/paperdoll/";
     private static final String imageUrl2 = ".png?fallback=dcuo.paperdoll.";
+    private static final String imageDir = "images/";
     private static final CensusParser parser = new CensusParser();
 
     private static final String delim = "\t";
@@ -97,7 +98,7 @@ public class DCUOCensus {
     }
 
     private void process() {
-        XLSXWriter xlsxWriter = new XLSXWriter();
+        XLSXWriter xlsxWriter = new XLSXWriter(imageDir);
 
         try {
             processItems();
@@ -358,7 +359,7 @@ public class DCUOCensus {
                 }
             }
             if (item != null) {
-                getIcon(item.getIconId(), item.getImagePath());
+                getIcon(item.getIconId(), item.getImagePath(), item.getCategory(), item.getSubCategory());
                 logger.debug(EquipmentSlot.getById(charItem.getEquipmentSlotId()) + delim + item.getNameEn()
                         + delim + item.getItemLevel());
             } else {
@@ -385,7 +386,7 @@ public class DCUOCensus {
             for (Feat feat : feats.values()) {
                 feat.setCompleted(getFeatCompletedCount(feat));
 
-                getIcon(feat.getIconId(), feat.getImagePath());
+                getIcon(feat.getIconId(), feat.getImagePath(), "Feat", "Icon");
             }
 
             saveFeats(feats);
@@ -395,12 +396,12 @@ public class DCUOCensus {
         logger.info("Finished getting completed feat counts.");
     }
 
-    private void getIcon(long iconId, String path) {
+    private void getIcon(long iconId, String path, String category, String subCategory) {
         if (iconId > 0) {
             if (!iconIds.contains(iconId)) {
                 iconIds.add(iconId);
-                saveIcon(iconId, path);
             }
+            saveIcon(iconId, path, category, subCategory);
         }
     }
 
@@ -705,7 +706,11 @@ public class DCUOCensus {
             final BufferedImage image = ImageIO.read(new URL(fullImageUrl));
 
             if (image != null) {
-                File out = new File(charId + ".png");
+                File dir = new File(imageDir);
+                if (!dir.exists()) {
+                    dir.mkdirs();
+                }
+                File out = new File(imageDir + charId + ".png");
                 ImageIO.write(image, "png", out);
             } else if (useOldId) {
                 long oldId = parser.parseCharIdMapping(new URL(characterIdMapUrl + charId));
@@ -720,14 +725,18 @@ public class DCUOCensus {
         return retval;
     }
 
-    public static void saveIcon(Long id, String path) {
-        File out = new File("Icon" + id + ".png");
+    public static void saveIcon(Long id, String path, String category, String subCategory) {
+        File out = new File(imageDir + category + "/" + subCategory + id + ".png");
         String fullImageUrl = serviceHost + path;
         try {
             if (!out.exists()) {
                 final BufferedImage image = ImageIO.read(new URL(fullImageUrl));
 
                 if (image != null) {
+                    File dir = new File(imageDir + category);
+                    if (!dir.exists()) {
+                        dir.mkdirs();
+                    }
                     ImageIO.write(image, "png", out);
                 }
             }

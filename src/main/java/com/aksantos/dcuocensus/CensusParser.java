@@ -93,7 +93,8 @@ public class CensusParser {
             } catch (JsonMappingException e) {
                 logger.error("Exception: " + e, e);
             } catch (IOException e) {
-                logger.error("IOException getting count for " + featName, e);
+                logger.warn("IOException getting count for " + featName);
+                logger.debug("Stack trace: ", e);
             }
         }
         return count;

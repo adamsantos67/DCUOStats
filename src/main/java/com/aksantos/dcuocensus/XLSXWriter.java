@@ -46,7 +46,7 @@ import com.aksantos.dcuocensus.models.enums.Role;
 
 public class XLSXWriter {
     private static final Logger logger = LogManager.getLogger(XLSXWriter.class);
-
+    
     private static final String STYLE_STARTS[] = { "Collect all styles in the ", "Collect all styles of the ",
             "Collect all items in the ", " style in the ", " styles in the ", "Collect a complete ",
             "Collect all styles for the " };
@@ -123,7 +123,10 @@ public class XLSXWriter {
     private Font f = null;
     private Font fBold = null;
 
-    public XLSXWriter() {
+    public String imageDir;
+    
+    public XLSXWriter(String imageDir) {
+        this.imageDir = imageDir;
         wb = new XSSFWorkbook();
         createStyles();
     }
@@ -396,7 +399,7 @@ public class XLSXWriter {
         if (item.getIconId() > 0) {
             try {
                 new AddDimensionedImage().addImageToSheet(cellnum++, rownum - 1, sheet, sheet.createDrawingPatriarch(),
-                        new File("Icon" + item.getIconId() + ".png").toURI().toURL(), 24, 24,
+                        new File(imageDir + item.getCategory() + "/" + item.getSubCategory() + item.getIconId() + ".png").toURI().toURL(), 24, 24,
                         AddDimensionedImage.EXPAND_ROW_AND_COLUMN);
                 c = (XSSFCell) r.createCell(cellnum - 1);
                 if (c != null) {
@@ -507,7 +510,7 @@ public class XLSXWriter {
             if (character.getId() > 0) {
                 try {
                     new AddDimensionedImage().addImageToSheet(cellnum++, rownum - 1, sheet,
-                            sheet.createDrawingPatriarch(), new File(character.getImageId() + ".png").toURI().toURL(),
+                            sheet.createDrawingPatriarch(), new File(imageDir + character.getImageId() + ".png").toURI().toURL(),
                             24, 24, AddDimensionedImage.EXPAND_ROW_AND_COLUMN);
                 } catch (IOException e) {
                 }
@@ -844,7 +847,7 @@ public class XLSXWriter {
                         try {
                             new AddDimensionedImage().addImageToSheet(cellnum++, rownum - 1, sheet,
                                     sheet.createDrawingPatriarch(),
-                                    new File("Icon" + feat.getIconId() + ".png").toURI().toURL(), 24, 24,
+                                    new File(imageDir + "Feat/Icon" + feat.getIconId() + ".png").toURI().toURL(), 24, 24,
                                     AddDimensionedImage.EXPAND_ROW_AND_COLUMN);
                         } catch (IOException e) {
                             logger.error("Exception: " + e, e);
