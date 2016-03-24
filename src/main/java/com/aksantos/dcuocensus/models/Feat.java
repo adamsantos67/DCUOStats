@@ -65,7 +65,7 @@ public class Feat implements Serializable {
     }
 
     public String getDescriptionEn() {
-        return description == null ? null : description.getEn();
+        return description == null ? "" : description.getEn();
     }
 
     public void setDescriptionEn(String description) {

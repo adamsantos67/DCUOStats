@@ -5,6 +5,14 @@ import java.util.Comparator;
 import com.aksantos.dcuocensus.models.Feat;
 
 public class FeatComparator implements Comparator<Feat> {
+    private static final FeatComparator INSTANCE = new FeatComparator();
+
+    private FeatComparator() {
+    }
+
+    public static FeatComparator getInstance() {
+        return INSTANCE;
+    }
 
     public int compare(Feat feat1, Feat feat2) {
         int ret = feat1.getOrder1() - feat2.getOrder1();

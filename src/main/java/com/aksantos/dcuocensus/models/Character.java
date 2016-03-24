@@ -1,7 +1,9 @@
 package com.aksantos.dcuocensus.models;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.aksantos.dcuocensus.models.enums.Alignment;
@@ -50,7 +52,7 @@ public class Character {
     private long vitalization;
     private long dominance;
     private long imageId;
-    
+
     private int worldId;
     private int databaseId;
     private long regionId;
@@ -60,6 +62,10 @@ public class Character {
 
     private Set<Long> completedFeats;
     private Set<Long> unlockableFeats = new TreeSet<Long>();
+
+    private Map<Role, Set<Long>> unlockableRoleFeats = new TreeMap<Role, Set<Long>>();
+    private Map<MovementMode, Set<Long>> unlockableMovementFeats = new TreeMap<MovementMode, Set<Long>>();
+
     private List<CharactersItem> characterItems;
 
     @JsonProperty("character_id")
@@ -131,7 +137,6 @@ public class Character {
         this.gender = gender;
     }
 
-  
     public Power getPower() {
         return power;
     }
@@ -165,7 +170,6 @@ public class Character {
         this.movementMode = movementMode;
     }
 
-    
     public void setMovementModeStr(String movementMode) {
         for (MovementMode mode : MovementMode.values()) {
             if (mode.getName() != null && mode.getName().equals(movementMode)) {
@@ -451,4 +455,49 @@ public class Character {
     public void setHash(String hash) {
         this.hash = hash;
     }
+
+    public Map<Role, Set<Long>> getUnlockableRoleFeats() {
+        return unlockableRoleFeats;
+    }
+
+    public Set<Long> getUnlockableRoleFeatSet(Role role) {
+        Set<Long> roleFeats = unlockableRoleFeats.get(role);
+        if (roleFeats == null) {
+            roleFeats = new TreeSet<Long>();
+            unlockableRoleFeats.put(role, roleFeats);
+        }
+        return roleFeats;
+    }
+
+    public void setUnlockableRoleFeats(Map<Role, Set<Long>> unlockableRoleFeats) {
+        this.unlockableRoleFeats = unlockableRoleFeats;
+    }
+
+    public void addUnlockableRoleFeat(Role role, Long featId) {
+        Set<Long> roleFeats = getUnlockableRoleFeatSet(role);
+        roleFeats.add(featId);
+    }
+
+    public Map<MovementMode, Set<Long>> getUnlockableMovementFeats() {
+        return unlockableMovementFeats;
+    }
+
+    public Set<Long> getUnlockableMovementFeatSet(MovementMode movement) {
+        Set<Long> movementFeats = unlockableMovementFeats.get(movement);
+        if (movementFeats == null) {
+            movementFeats = new TreeSet<Long>();
+            unlockableMovementFeats.put(movement, movementFeats);
+        }
+        return movementFeats;
+    }
+
+    public void setUnlockableMovementFeats(Map<MovementMode, Set<Long>> unlockableMovementFeats) {
+        this.unlockableMovementFeats = unlockableMovementFeats;
+    }
+
+    public void addUnlockabeMovementFeat(MovementMode movement, Long featId) {
+        Set<Long> movementFeats = getUnlockableMovementFeatSet(movement);
+        movementFeats.add(featId);
+    }
+
 }

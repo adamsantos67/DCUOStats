@@ -46,7 +46,7 @@ import com.aksantos.dcuocensus.models.enums.Role;
 
 public class XLSXWriter {
     private static final Logger logger = LogManager.getLogger(XLSXWriter.class);
-    
+
     private static final String STYLE_STARTS[] = { "Collect all styles in the ", "Collect all styles of the ",
             "Collect all items in the ", " style in the ", " styles in the ", "Collect a complete ",
             "Collect all styles for the " };
@@ -124,7 +124,7 @@ public class XLSXWriter {
     private Font fBold = null;
 
     public String imageDir;
-    
+
     public XLSXWriter(String imageDir) {
         this.imageDir = imageDir;
         wb = new XSSFWorkbook();
@@ -344,7 +344,8 @@ public class XLSXWriter {
 
         int cellnum = 0;
         String headers[] = { "Slot", "Im", "Name", "Level", "Category", "Sub-Category", "Quality", "Role", "Alignment",
-                "Id" };
+                "Sale Value", "DPS", "Health", "Power", "Might", "Precision", "Restoration", "Vitalization",
+                "Dominance", "Id" };
 
         for (String header : headers) {
             c = (XSSFCell) r.createCell(cellnum++);
@@ -398,9 +399,11 @@ public class XLSXWriter {
         XSSFCell c;
         if (item.getIconId() > 0) {
             try {
-                new AddDimensionedImage().addImageToSheet(cellnum++, rownum - 1, sheet, sheet.createDrawingPatriarch(),
-                        new File(imageDir + item.getCategory() + "/" + item.getSubCategory() + item.getIconId() + ".png").toURI().toURL(), 24, 24,
-                        AddDimensionedImage.EXPAND_ROW_AND_COLUMN);
+                new AddDimensionedImage()
+                        .addImageToSheet(cellnum++, rownum - 1, sheet,
+                                sheet.createDrawingPatriarch(), new File(imageDir + item.getCategory() + "/"
+                                        + item.getSubCategory() + item.getIconId() + ".png").toURI().toURL(),
+                                24, 24, AddDimensionedImage.EXPAND_ROW_AND_COLUMN);
                 c = (XSSFCell) r.createCell(cellnum - 1);
                 if (c != null) {
                     switch (item.getQuality()) {
@@ -474,9 +477,40 @@ public class XLSXWriter {
             c.setCellValue(align.toString());
         }
 
+        addLongValue(r, cellnum++, item.getSaleValue());
+
+        c = (XSSFCell) r.createCell(cellnum++);
+        double dps = item.getDps();
+        if (dps > 0.0) {
+            c.setCellStyle(cs);
+            c.setCellValue(item.getDps());
+        }
+
+        addLongValue(r, cellnum++, item.getHealth());
+
+        addLongValue(r, cellnum++, item.getPower());
+
+        addLongValue(r, cellnum++, item.getFinisherAttack());
+
+        addLongValue(r, cellnum++, item.getBasicAttack());
+
+        addLongValue(r, cellnum++, item.getHeal());
+
+        addLongValue(r, cellnum++, item.getPowerHeal());
+
+        addLongValue(r, cellnum++, item.getDominance());
+
         c = (XSSFCell) r.createCell(cellnum++);
         c.setCellStyle(csNumeric);
         c.setCellValue(item.getId());
+    }
+
+    private void addLongValue(Row r, int cellnum, long val) {
+        XSSFCell c = (XSSFCell) r.createCell(cellnum);
+        if (val > 0) {
+            c.setCellStyle(cs2);
+            c.setCellValue(val);
+        }
     }
 
     public void writeCharacters(Collection<Character> characters) {
@@ -492,7 +526,7 @@ public class XLSXWriter {
         int cellnum = 0;
         String headers[] = { "Img.", "Name", "Level", "CR", "SP", "PvP CR", "Power", "Role", "Move", "Faction",
                 "Personality", "Gender", "Origin", "Mentor", "Weapon", "Health", "Power", "Defense", "Tough", "Might",
-                "Prec", "Rest", "Vit", "Dom", "Id" };
+                "Prec", "Rest", "Vit", "Dom", "Max Feats", "Id" };
 
         for (String header : headers) {
             c = (XSSFCell) r.createCell(cellnum++);
@@ -510,8 +544,9 @@ public class XLSXWriter {
             if (character.getId() > 0) {
                 try {
                     new AddDimensionedImage().addImageToSheet(cellnum++, rownum - 1, sheet,
-                            sheet.createDrawingPatriarch(), new File(imageDir + character.getImageId() + ".png").toURI().toURL(),
-                            24, 24, AddDimensionedImage.EXPAND_ROW_AND_COLUMN);
+                            sheet.createDrawingPatriarch(),
+                            new File(imageDir + character.getImageId() + ".png").toURI().toURL(), 24, 24,
+                            AddDimensionedImage.EXPAND_ROW_AND_COLUMN);
                 } catch (IOException e) {
                 }
             } else {
@@ -753,6 +788,10 @@ public class XLSXWriter {
             c.setCellValue(character.getDominance());
 
             c = (XSSFCell) r.createCell(cellnum++);
+            c.setCellStyle(cs2);
+            c.setCellValue(character.getMaxFeats());
+
+            c = (XSSFCell) r.createCell(cellnum++);
             c.setCellStyle(csNumeric);
             c.setCellValue(character.getId());
             // r.setHeightInPoints(13);
@@ -763,19 +802,53 @@ public class XLSXWriter {
         }
     }
 
-    public void writeUnlockableFeats(Character character, Collection<Feat> feats) {
-        Sheet sheets[] = { wb.createSheet(character.getName()) };
-        writeFeats(feats, sheets);
+    public void writeUnlockableFeats(Character character, Collection<Feat> feats, Map<Role, Collection<Feat>> roleFeats,
+            Map<MovementMode, Collection<Feat>> movementFeats) {
+        Sheet sheets[] = { wb.createSheet(character.getName() + " Unlockable") };
+        for (Sheet sheet : sheets) {
+            int rownum = 0;
+
+            int cellnum = writeFeatHeaders(sheet, rownum++);
+
+            rownum = writeFeatRows(feats, sheet, rownum);
+            for (Role role : Role.values()) {
+                Collection<Feat> roleFeatCollection = roleFeats.get(role);
+                if (roleFeatCollection != null && !roleFeatCollection.isEmpty()) {
+                    sheet.createRow(rownum++);
+                    Row r = sheet.createRow(rownum++);
+                    Cell c = r.createCell(1);
+                    c.setCellStyle(csBold);
+                    c.setCellValue(role.toString() + " Feats");
+                    rownum = writeFeatRows(roleFeatCollection, sheet, rownum);
+                }
+            }
+
+            for (MovementMode move : MovementMode.values()) {
+                Collection<Feat> movementFeatCollection = movementFeats.get(move);
+                if (movementFeatCollection != null && !movementFeatCollection.isEmpty()) {
+                    sheet.createRow(rownum++);
+                    Row r = sheet.createRow(rownum++);
+                    Cell c = r.createCell(1);
+                    c.setCellStyle(csBold);
+                    c.setCellValue(move.toString() + " Feats");
+                    rownum = writeFeatRows(movementFeatCollection, sheet, rownum);
+                }
+            }
+
+            for (int i = 1; i < cellnum; i++) {
+                sheet.autoSizeColumn(i);
+            }
+        }
     }
 
     public void writeNeededFeats(Collection<Feat> feats) {
-        Set<Feat> sortedFeats = new TreeSet<Feat>(new FeatCompletedComparator());
+        Set<Feat> sortedFeats = new TreeSet<Feat>(FeatCompletedComparator.getInstance());
         sortedFeats.addAll(feats);
         writeFeats(sortedFeats, "Needed");
     }
 
     public void writeAllFeats(Collection<Feat> feats) {
-        Set<Feat> sortedFeats = new TreeSet<Feat>(new FeatComparator());
+        Set<Feat> sortedFeats = new TreeSet<Feat>(FeatComparator.getInstance());
         sortedFeats.addAll(feats);
         writeFeats(sortedFeats, "All");
     }
@@ -785,221 +858,234 @@ public class XLSXWriter {
 
         Sheet sheets[] = { wb.createSheet(type), wb.createSheet("Villains " + type), wb.createSheet("Heroes " + type) };
 
-        writeFeats(sortedFeats, sheets);
+        writeFeatsToSheets(sortedFeats, sheets);
 
         logger.info("Finished writing " + type + " Feats Excel file.");
     }
 
-    private void writeFeats(Collection<Feat> sortedFeats, Sheet[] sheets) {
-        Row r = null;
-        Cell c = null;
-
+    private void writeFeatsToSheets(Collection<Feat> feats, Sheet[] sheets) {
         for (Sheet sheet : sheets) {
             int rownum = 0;
-            r = sheet.createRow(rownum++);
 
-            int cellnum = 0;
+            int cellnum = writeFeatHeaders(sheet, rownum++);
 
-            String headers[] = { "Im", "Category", "SubCategory", "Name", "Description", "Reward", "Faction", "Role",
-                    "Origin", "Move", "Completed", "Order1", "Order2", "Id" };
-
-            for (String header : headers) {
-                c = r.createCell(cellnum++);
-                c.setCellStyle(cs1);
-                c.setCellValue(header);
-            }
-
-            for (Feat feat : sortedFeats) {
-                boolean isEpisodeFeat = false;
-                boolean isStyleFeat = false;
-                boolean isLegendsFeat = false;
-                if (sheet == sheets[0] || (sheet == sheets[1] && feat.getAlignment() == Alignment.Villain)
-                        || (sheet == sheets[2] && feat.getAlignment() == Alignment.Hero)) {
-                    CellStyle cellStyle1 = cs;
-                    CellStyle cellStyle2 = cs;
-                    if ("Styles".equals(feat.getCategory()) || feat.getDescriptionEn().contains("style")) {
-                        isStyleFeat = true;
-                        cellStyle1 = csGreen;
-                        cellStyle2 = csGreen;
-                    } else if ("Dueling".equals(feat.getSubCategory())) {
-                        cellStyle1 = csGrey;
-                    } else if ("Player vs. Player".equals(feat.getCategory())) {
-                        cellStyle1 = csRed;
-                    } else if ("Episodes".equals(feat.getCategory())) {
-                        isEpisodeFeat = true;
-                        if (("The Last Laugh".equals(feat.getSubCategory())
-                                && (!feat.getDescriptionEn().toLowerCase().contains("duo")
-                                        && !feat.getNameEn().startsWith("School of Hard")))
-                                || ("Home Turf".equals(feat.getSubCategory())
-                                        && feat.getDescriptionEn().contains("PvP"))) {
-                            cellStyle1 = csRed;
-                        } else {
-                            cellStyle1 = csOrange;
-                            cellStyle2 = csOrange;
-                        }
-                    }
-
-                    r = sheet.createRow(rownum++);
-
-                    cellnum = 0;
-
-                    if (feat.getIconId() > 0) {
-                        try {
-                            new AddDimensionedImage().addImageToSheet(cellnum++, rownum - 1, sheet,
-                                    sheet.createDrawingPatriarch(),
-                                    new File(imageDir + "Feat/Icon" + feat.getIconId() + ".png").toURI().toURL(), 24, 24,
-                                    AddDimensionedImage.EXPAND_ROW_AND_COLUMN);
-                        } catch (IOException e) {
-                            logger.error("Exception: " + e, e);
-                        }
-                    } else {
-                        c = r.createCell(cellnum++);
-                    }
-
-                    c = r.createCell(cellnum++);
-                    String category = feat.getCategory();
-                    if ("Legends PvE".equals(category)) {
-                        if ("".equals(feat.getSubCategory())) {
-                            isLegendsFeat = true;
-                        }
-                        c.setCellStyle(csPaleBlue);
-                    } else {
-                        c.setCellStyle(cellStyle2);
-                    }
-                    c.setCellValue(category);
-
-                    c = r.createCell(cellnum++);
-                    if ("Legends PvE".equals(category)) {
-                        c.setCellStyle(csPaleBlue);
-                    } else {
-                        c.setCellStyle(cellStyle1);
-                    }
-                    c.setCellValue(feat.getSubCategory());
-
-                    c = r.createCell(cellnum++);
-                    c.setCellStyle(cellStyle2);
-                    XSSFRichTextString rts = new XSSFRichTextString(feat.getNameEn());
-                    rts.applyFont(fBold);
-                    c.setCellValue(rts);
-
-                    c = r.createCell(cellnum++);
-                    c.setCellStyle(cellStyle2);
-                    if (isEpisodeFeat) {
-                        formatEpisodeFeat(c, feat, fBold);
-                    } else if (isStyleFeat) {
-                        formatStyleFeat(c, feat, fBold);
-                    } else if (isLegendsFeat) {
-                        formatLegendsFeat(c, feat, fBold);
-                    } else {
-                        c.setCellValue(feat.getDescriptionEn());
-                    }
-
-                    c = r.createCell(cellnum++);
-                    long reward = feat.getReward();
-                    if (reward == 10) {
-                        c.setCellStyle(csGreen);
-                    } else if (reward == 25) {
-                        c.setCellStyle(csYellow);
-                    } else if (reward == 50) {
-                        c.setCellStyle(csRed);
-                    } else {
-                        c.setCellStyle(cs);
-                    }
-                    c.setCellValue(reward);
-
-                    c = r.createCell(cellnum++);
-                    Alignment alignment = feat.getAlignment();
-                    if (alignment != null) {
-                        switch (alignment) {
-                        case Hero:
-                            c.setCellStyle(csGreen);
-                            break;
-                        case Villain:
-                            c.setCellStyle(csRed);
-                            break;
-                        default:
-                            c.setCellStyle(cs);
-                        }
-                        c.setCellValue(alignment.toString());
-                    }
-
-                    c = r.createCell(cellnum++);
-                    String role = feat.getRole();
-                    if ("Controller".equals(role)) {
-                        c.setCellStyle(csPaleBlue);
-                    } else if ("Healer".equals(role)) {
-                        c.setCellStyle(csGreen);
-                    } else if ("Tank".equals(role)) {
-                        c.setCellStyle(csOrange);
-                    } else {
-                        c.setCellStyle(cs);
-                    }
-                    c.setCellValue(role);
-
-                    c = r.createCell(cellnum++);
-                    Origin origin = feat.getOrigin();
-                    if (origin != null) {
-                        switch (origin) {
-                        case Tech:
-                            c.setCellStyle(csPaleBlue);
-                            break;
-                        case Meta:
-                            c.setCellStyle(csGreen);
-                            break;
-                        case Magic:
-                            c.setCellStyle(csOrange);
-                            break;
-                        default:
-                            c.setCellStyle(cs);
-                            break;
-                        }
-                        c.setCellValue(origin.toString());
-                    }
-
-                    c = r.createCell(cellnum++);
-                    MovementMode movement = feat.getMovementMode();
-                    if (movement != null) {
-                        switch (movement) {
-                        case Flight:
-                            c.setCellStyle(csGreen);
-                            break;
-                        case Acrobat:
-                            c.setCellStyle(csYellow);
-                            break;
-                        case Speed:
-                            c.setCellStyle(csRed);
-                            break;
-                        default:
-                            c.setCellStyle(cs);
-                            break;
-                        }
-                        c.setCellValue(movement.toString());
-                    }
-
-                    c = r.createCell(cellnum++);
-                    c.setCellStyle(cs2);
-                    c.setCellValue(feat.getCompleted());
-
-                    c = r.createCell(cellnum++);
-                    c.setCellStyle(csHide);
-                    c.setCellValue(feat.getOrder1());
-
-                    c = r.createCell(cellnum++);
-                    c.setCellStyle(csHide);
-                    c.setCellValue(feat.getOrder2());
-
-                    c = r.createCell(cellnum++);
-                    c.setCellStyle(csHide);
-                    c.setCellValue(feat.getId());
-
-                    r.setHeightInPoints(15);
-                }
-            }
+            writeFeatRows(feats, sheet, rownum);
 
             for (int i = 1; i < cellnum; i++) {
                 sheet.autoSizeColumn(i);
             }
         }
+    }
+
+    private int writeFeatHeaders(Sheet sheet, int rownum) {
+        Cell c;
+        String headers[] = { "Im", "Category", "SubCategory", "Name", "Description", "Reward", "Faction", "Role",
+                "Origin", "Move", "Completed", "Order1", "Order2", "Id" };
+
+        Row r = sheet.createRow(rownum);
+        int cellnum = 0;
+        for (String header : headers) {
+            c = r.createCell(cellnum++);
+            c.setCellStyle(cs1);
+            c.setCellValue(header);
+        }
+        return cellnum;
+    }
+
+    private int writeFeatRows(Collection<Feat> sortedFeats, Sheet sheet, int rownum) {
+        Row r;
+        Cell c;
+        int cellnum = 0;
+        for (Feat feat : sortedFeats) {
+            boolean isEpisodeFeat = false;
+            boolean isStyleFeat = false;
+            boolean isLegendsFeat = false;
+            String sheetName = sheet.getSheetName();
+            if (sheetName == null
+                    || (!sheetName.startsWith(Alignment.Villain.toString())
+                            && !sheetName.startsWith(Alignment.Hero.toString()))
+                    || (sheetName.startsWith(Alignment.Villain.toString()) && feat.getAlignment() == Alignment.Villain)
+                    || (sheetName.startsWith(Alignment.Hero.toString()) && feat.getAlignment() == Alignment.Hero)) {
+                CellStyle cellStyle1 = cs;
+                CellStyle cellStyle2 = cs;
+                if ("Styles".equals(feat.getCategory()) || feat.getDescriptionEn().contains("style")) {
+                    isStyleFeat = true;
+                    cellStyle1 = csGreen;
+                    cellStyle2 = csGreen;
+                } else if ("Dueling".equals(feat.getSubCategory())) {
+                    cellStyle1 = csGrey;
+                } else if ("Player vs. Player".equals(feat.getCategory())) {
+                    cellStyle1 = csRed;
+                } else if ("Episodes".equals(feat.getCategory())) {
+                    isEpisodeFeat = true;
+                    if (("The Last Laugh".equals(feat.getSubCategory())
+                            && (!feat.getDescriptionEn().toLowerCase().contains("duo")
+                                    && !feat.getNameEn().startsWith("School of Hard")))
+                            || ("Home Turf".equals(feat.getSubCategory()) && feat.getDescriptionEn().contains("PvP"))) {
+                        cellStyle1 = csRed;
+                    } else {
+                        cellStyle1 = csOrange;
+                        cellStyle2 = csOrange;
+                    }
+                }
+
+                r = sheet.createRow(rownum++);
+
+                cellnum = 0;
+
+                if (feat.getIconId() > 0) {
+                    try {
+                        new AddDimensionedImage().addImageToSheet(cellnum++, rownum - 1, sheet,
+                                sheet.createDrawingPatriarch(),
+                                new File(imageDir + "Feat/Icon" + feat.getIconId() + ".png").toURI().toURL(), 24, 24,
+                                AddDimensionedImage.EXPAND_ROW_AND_COLUMN);
+                    } catch (IOException e) {
+                        logger.error("Exception: " + e, e);
+                    }
+                } else {
+                    c = r.createCell(cellnum++);
+                }
+
+                c = r.createCell(cellnum++);
+                String category = feat.getCategory();
+                if ("Legends PvE".equals(category)) {
+                    if ("".equals(feat.getSubCategory())) {
+                        isLegendsFeat = true;
+                    }
+                    c.setCellStyle(csPaleBlue);
+                } else {
+                    c.setCellStyle(cellStyle2);
+                }
+                c.setCellValue(category);
+
+                c = r.createCell(cellnum++);
+                if ("Legends PvE".equals(category)) {
+                    c.setCellStyle(csPaleBlue);
+                } else {
+                    c.setCellStyle(cellStyle1);
+                }
+                c.setCellValue(feat.getSubCategory());
+
+                c = r.createCell(cellnum++);
+                c.setCellStyle(cellStyle2);
+                XSSFRichTextString rts = new XSSFRichTextString(feat.getNameEn());
+                rts.applyFont(fBold);
+                c.setCellValue(rts);
+
+                c = r.createCell(cellnum++);
+                c.setCellStyle(cellStyle2);
+                if (isEpisodeFeat) {
+                    formatEpisodeFeat(c, feat, fBold);
+                } else if (isStyleFeat) {
+                    formatStyleFeat(c, feat, fBold);
+                } else if (isLegendsFeat) {
+                    formatLegendsFeat(c, feat, fBold);
+                } else {
+                    c.setCellValue(feat.getDescriptionEn());
+                }
+
+                c = r.createCell(cellnum++);
+                long reward = feat.getReward();
+                if (reward == 10) {
+                    c.setCellStyle(csGreen);
+                } else if (reward == 25) {
+                    c.setCellStyle(csYellow);
+                } else if (reward == 50) {
+                    c.setCellStyle(csRed);
+                } else {
+                    c.setCellStyle(cs);
+                }
+                c.setCellValue(reward);
+
+                c = r.createCell(cellnum++);
+                Alignment alignment = feat.getAlignment();
+                if (alignment != null) {
+                    switch (alignment) {
+                    case Hero:
+                        c.setCellStyle(csGreen);
+                        break;
+                    case Villain:
+                        c.setCellStyle(csRed);
+                        break;
+                    default:
+                        c.setCellStyle(cs);
+                    }
+                    c.setCellValue(alignment.toString());
+                }
+
+                c = r.createCell(cellnum++);
+                String role = feat.getRole();
+                if ("Controller".equals(role)) {
+                    c.setCellStyle(csPaleBlue);
+                } else if ("Healer".equals(role)) {
+                    c.setCellStyle(csGreen);
+                } else if ("Tank".equals(role)) {
+                    c.setCellStyle(csOrange);
+                } else {
+                    c.setCellStyle(cs);
+                }
+                c.setCellValue(role);
+
+                c = r.createCell(cellnum++);
+                Origin origin = feat.getOrigin();
+                if (origin != null) {
+                    switch (origin) {
+                    case Tech:
+                        c.setCellStyle(csPaleBlue);
+                        break;
+                    case Meta:
+                        c.setCellStyle(csGreen);
+                        break;
+                    case Magic:
+                        c.setCellStyle(csOrange);
+                        break;
+                    default:
+                        c.setCellStyle(cs);
+                        break;
+                    }
+                    c.setCellValue(origin.toString());
+                }
+
+                c = r.createCell(cellnum++);
+                MovementMode movement = feat.getMovementMode();
+                if (movement != null) {
+                    switch (movement) {
+                    case Flight:
+                        c.setCellStyle(csGreen);
+                        break;
+                    case Acrobat:
+                        c.setCellStyle(csYellow);
+                        break;
+                    case Speed:
+                        c.setCellStyle(csRed);
+                        break;
+                    default:
+                        c.setCellStyle(cs);
+                        break;
+                    }
+                    c.setCellValue(movement.toString());
+                }
+
+                c = r.createCell(cellnum++);
+                c.setCellStyle(cs2);
+                c.setCellValue(feat.getCompleted());
+
+                c = r.createCell(cellnum++);
+                c.setCellStyle(csHide);
+                c.setCellValue(feat.getOrder1());
+
+                c = r.createCell(cellnum++);
+                c.setCellStyle(csHide);
+                c.setCellValue(feat.getOrder2());
+
+                c = r.createCell(cellnum++);
+                c.setCellStyle(csHide);
+                c.setCellValue(feat.getId());
+
+                r.setHeightInPoints(15);
+            }
+        }
+        return rownum;
     }
 
     private static void formatLegendsFeat(Cell c, Feat feat, Font font) {

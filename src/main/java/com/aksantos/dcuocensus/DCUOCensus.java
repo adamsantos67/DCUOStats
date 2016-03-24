@@ -18,6 +18,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -46,14 +47,17 @@ import com.aksantos.dcuocensus.models.enums.Gender;
 import com.aksantos.dcuocensus.models.enums.IconId;
 import com.aksantos.dcuocensus.models.enums.MovementMode;
 import com.aksantos.dcuocensus.models.enums.Origin;
+import com.aksantos.dcuocensus.models.enums.Role;
 
 /**
  * Hello world!
  *
  */
 public class DCUOCensus {
+    private static final int MIN_CR = 100;
+
     private static final Logger logger = LogManager.getLogger(DCUOCensus.class);
-    
+
     private static final String CHARACTERS_INI = "characters.ini";
     private static final String ALL_FEATS_SER = "allFeats.ser";
     private static final String ALL_ITEMS_SER = "allItems.ser";
@@ -135,7 +139,7 @@ public class DCUOCensus {
             List<Long> featsCompleted, XLSXWriter xlsxWriter) {
         try {
             for (Character character : sortedCharacters) {
-                if (character.getCombatRating() > 100) {
+                if (character.getCombatRating() > MIN_CR) {
                     for (Long completedFeatId : featsCompleted) {
                         if (!character.getCompletedFeats().contains(completedFeatId)) {
                             Feat completedFeat = feats.get(completedFeatId);
@@ -150,6 +154,18 @@ public class DCUOCensus {
                                             if (featRole == null || "".equals(featRole)
                                                     || featRole.contains(character.getRole().toString())) {
                                                 character.getUnlockableFeats().add(completedFeatId);
+                                            } else {
+                                                for (Role role : Role.values()) {
+                                                    if (featRole.contains(role.toString())) {
+                                                        character.addUnlockableRoleFeat(role, completedFeatId);
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            for (MovementMode move : MovementMode.values()) {
+                                                if (featMove == move) {
+                                                    character.addUnlockabeMovementFeat(move, completedFeatId);
+                                                }
                                             }
                                         }
                                     }
@@ -161,20 +177,24 @@ public class DCUOCensus {
                     }
                 }
 
-                Set<Feat> sortedFeats = new TreeSet<Feat>(new FeatComparator());
-
-                for (Long featId : character.getUnlockableFeats()) {
-                    Feat feat = feats.get(featId);
-                    if (feat != null) {
-                        sortedFeats.add(feat);
-                    } else {
-                        Feat missingFeat = new Feat();
-                        missingFeat.setId(featId);
-                        sortedFeats.add(missingFeat);
+                if (character.getCombatRating() > MIN_CR) {
+                    Set<Feat> sortedFeats = sortFeatIdSet(feats, character.getUnlockableFeats());
+                    Map<MovementMode, Collection<Feat>> movementFeats = new TreeMap<MovementMode, Collection<Feat>>();
+                    for (MovementMode move : MovementMode.values()) {
+                        Set<Feat> sortedMovementFeats = sortFeatIdSet(feats,
+                                character.getUnlockableMovementFeatSet(move));
+                        if (sortedMovementFeats != null && !sortedMovementFeats.isEmpty()) {
+                            movementFeats.put(move, sortedMovementFeats);
+                        }
                     }
-                }
-                if (sortedFeats.size() > 0) {
-                    xlsxWriter.writeUnlockableFeats(character, sortedFeats);
+                    Map<Role, Collection<Feat>> roleFeats = new TreeMap<Role, Collection<Feat>>();
+                    for (Role role : Role.values()) {
+                        Set<Feat> sortedRoleFeats = sortFeatIdSet(feats, character.getUnlockableRoleFeatSet(role));
+                        if (sortedRoleFeats != null && !sortedRoleFeats.isEmpty()) {
+                            roleFeats.put(role, sortedRoleFeats);
+                        }
+                    }
+                    xlsxWriter.writeUnlockableFeats(character, sortedFeats, roleFeats, movementFeats);
                 }
             }
         } catch (Exception e) {
@@ -182,11 +202,28 @@ public class DCUOCensus {
         }
     }
 
+    private Set<Feat> sortFeatIdSet(Map<Long, Feat> feats, Set<Long> featIds) {
+        Set<Feat> sortedFeats = new TreeSet<Feat>(FeatComparator.getInstance());
+
+        for (Long featId : featIds) {
+            Feat feat = feats.get(featId);
+            if (feat != null) {
+                sortedFeats.add(feat);
+            } else {
+                Feat missingFeat = new Feat();
+                missingFeat.setId(featId);
+                sortedFeats.add(missingFeat);
+            }
+        }
+        return sortedFeats;
+    }
+
     private void findNeededAndCompletedFeats(Set<Character> sortedCharacters, Map<Long, Feat> feats,
             Map<Long, Feat> featsNeeded, List<Long> featsCompleted) {
         for (Character character : sortedCharacters) {
             try {
-                Set<Long> featIds = parser.parseCharacterFeats(new URL(characterFeatsUrl + character.getId()), character.getName());
+                Set<Long> featIds = parser.parseCharacterFeats(new URL(characterFeatsUrl + character.getId()),
+                        character.getName());
                 character.setCompletedFeats(featIds);
 
                 for (Long featId : featIds) {
@@ -322,13 +359,14 @@ public class DCUOCensus {
         Set<Character> sortedCharacters = new TreeSet<Character>(new CharacterComparator());
         sortedCharacters.addAll(characters.values());
 
-        logger.info("id" + delim + "name" + delim + "level" + delim + "CR" + delim + "SP" + delim + "Power"
-                + delim + "Movement" + delim + "Faction" + delim + "Personality" + delim + "Gender" + delim + "Origin");
+        logger.info("id" + delim + "name" + delim + "level" + delim + "CR" + delim + "SP" + delim + "Power" + delim
+                + "Movement" + delim + "Faction" + delim + "Personality" + delim + "Gender" + delim + "Origin");
         for (Character character : sortedCharacters) {
             logger.info(character.getId() + delim + character.getName() + delim + character.getLevel() + delim
                     + character.getCombatRating() + delim + character.getSkillPoints() + delim + character.getPower()
                     + delim + character.getMovementMode() + delim + character.getAlignment() + delim
-                    + character.getPersonality().getNameEn() + delim + character.getGender() + delim + character.getOrigin());
+                    + character.getPersonality().getNameEn() + delim + character.getGender() + delim
+                    + character.getOrigin());
 
             character.setImageId(saveImage(character.getId(), character.getGender()));
             // showImage(character.getId());
@@ -360,8 +398,8 @@ public class DCUOCensus {
             }
             if (item != null) {
                 getIcon(item.getIconId(), item.getImagePath(), item.getCategory(), item.getSubCategory());
-                logger.debug(EquipmentSlot.getById(charItem.getEquipmentSlotId()) + delim + item.getNameEn()
-                        + delim + item.getItemLevel());
+                logger.debug(EquipmentSlot.getById(charItem.getEquipmentSlotId()) + delim + item.getNameEn() + delim
+                        + item.getItemLevel());
             } else {
                 logger.debug(EquipmentSlot.getById(charItem.getEquipmentSlotId()) + delim + charItem.getItemId());
             }
@@ -444,7 +482,8 @@ public class DCUOCensus {
     private static long getFeatCompletedCount(Feat feat) {
         long count = 0;
         try {
-//            String out = HtmlReader.getHTML(characterFeatCountUrl + feat.getId(), feat.getNameEn());
+            // String out = HtmlReader.getHTML(characterFeatCountUrl +
+            // feat.getId(), feat.getNameEn());
             count = parser.parseCount(new URL(characterFeatCountUrl + feat.getId()), feat.getNameEn());
         } catch (Exception e) {
             logger.error("Failed due to exception getting completed count for " + feat.getNameEn(), e);
@@ -461,24 +500,23 @@ public class DCUOCensus {
                 10, IconId.GENERAL, null, null, null, "Healer");
 
         addFeat(feats, 715081, "General", "", 10, 0, "Knight for Justice",
-                "Achieve level 30 as a hero mentored by Batman", 25, IconId.GENERAL, Alignment.Hero,
-                null, Origin.Tech);
+                "Achieve level 30 as a hero mentored by Batman", 25, IconId.GENERAL, Alignment.Hero, null, Origin.Tech);
         addFeat(feats, 715082, "General", "", 10, 0, "Warrior of Truth",
-                "Achieve level 30 as a hero mentored by Wonder Woman", 25, IconId.GENERAL,
-                Alignment.Hero, null, Origin.Magic);
+                "Achieve level 30 as a hero mentored by Wonder Woman", 25, IconId.GENERAL, Alignment.Hero, null,
+                Origin.Magic);
         addFeat(feats, 715083, "General", "", 10, 0, "Champion of Earth",
-                "Achieve level 30 as a hero mentored by Superman", 25, IconId.GENERAL, Alignment.Hero,
-                null, Origin.Meta);
+                "Achieve level 30 as a hero mentored by Superman", 25, IconId.GENERAL, Alignment.Hero, null,
+                Origin.Meta);
 
         addFeat(feats, 938050, "General", "", 10, 0, "The Queen's Favorite",
-                "Achieve level 30 as a villain mentored by Circe", 25, IconId.GENERAL,
-                Alignment.Villain, null, Origin.Magic);
+                "Achieve level 30 as a villain mentored by Circe", 25, IconId.GENERAL, Alignment.Villain, null,
+                Origin.Magic);
         addFeat(feats, 938051, "General", "", 10, 0, "Criminal Mastermind",
-                "Achieve level 30 as a villain mentored by Lex Luthor", 25, IconId.GENERAL,
-                Alignment.Villain, null, Origin.Meta);
+                "Achieve level 30 as a villain mentored by Lex Luthor", 25, IconId.GENERAL, Alignment.Villain, null,
+                Origin.Meta);
         addFeat(feats, 938052, "General", "", 10, 0, "The Joker in the Deck",
-                "Achieve level 30 as a villain mentored by the Joker", 25, IconId.GENERAL,
-                Alignment.Villain, null, Origin.Tech);
+                "Achieve level 30 as a villain mentored by the Joker", 25, IconId.GENERAL, Alignment.Villain, null,
+                Origin.Tech);
 
         addFeat(feats, 715084, "General", "", 10, 0, "Agile Ace", "Achieve level 30 with an Agile movement mode", 25,
                 IconId.GENERAL, null, MovementMode.Acrobat);
@@ -552,12 +590,17 @@ public class DCUOCensus {
         // None Shall Pass? or Lights On, Lights Off?
         addFeat(feats, 3135541, "Episodes", "Phantom Zone & Science Spire", 150, 210, "PZe",
                 "During the Phantom Zone (Elite) Operation,", 10, IconId.ALERTS);
+        addFeat(feats, 3135577, "Episodes", "Phantom Zone & Science Spire", 150, 210, "PZe",
+                "During the Phantom Zone (Elite) Operation,", 10, IconId.ALERTS);
         addFeat(feats, 3141827, "Episodes", "Phantom Zone & Science Spire", 150, 210, "Krypton-Spite",
                 "During the Science Spire Operation,", 25, IconId.SOLOS);
         addFeat(feats, 3141831, "Episodes", "Phantom Zone & Science Spire", 150, 210, "Energizer",
                 "During the Science Spire Operation,", 25, IconId.SOLOS);
         addFeat(feats, 3141835, "Episodes", "Phantom Zone & Science Spire", 150, 210, "Insecurity Devices",
                 "During the Science Spire Operation,", 25, IconId.SOLOS);
+
+        addFeat(feats, 3150281, "Seasonal", "St. Patrick's Day", 100, 20, "SPD", "", 10, IconId.ST_PATRICKS);
+
     }
 
     private static void addWTTeamUp(Map<Long, Feat> feats, long id, String team) {
