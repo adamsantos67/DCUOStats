@@ -5,10 +5,9 @@ import java.io.Serializable;
 import com.aksantos.dcuocensus.models.enums.Alignment;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Item implements Serializable {
+public class Item extends Type implements Serializable {
     private static final long serialVersionUID = -5090113400631636783L;
 
-    private long id;
     private String codeName;
     private Name name;
     private int minLevel = 0;
@@ -62,11 +61,7 @@ public class Item implements Serializable {
 
     @JsonProperty("item_id")
     public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
+        return super.getId();
     }
 
     @JsonProperty("code_name")

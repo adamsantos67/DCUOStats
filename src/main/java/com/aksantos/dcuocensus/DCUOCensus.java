@@ -150,13 +150,13 @@ public class DCUOCensus {
                                     if (featOrigin == null || featOrigin == character.getOrigin()) {
                                         MovementMode featMove = completedFeat.getMovementMode();
                                         if (featMove == null || featMove == character.getMovementMode()) {
-                                            String featRole = completedFeat.getRole();
-                                            if (featRole == null || "".equals(featRole)
-                                                    || featRole.contains(character.getRole().toString())) {
+                                            List<Role> featRoles = completedFeat.getRoles();
+                                            if (featRoles == null || featRoles.isEmpty()
+                                                    || featRoles.contains(character.getRole())) {
                                                 character.getUnlockableFeats().add(completedFeatId);
                                             } else {
                                                 for (Role role : Role.values()) {
-                                                    if (featRole.contains(role.toString())) {
+                                                    if (featRoles.contains(role)) {
                                                         character.addUnlockableRoleFeat(role, completedFeatId);
                                                     }
                                                 }
@@ -179,6 +179,11 @@ public class DCUOCensus {
 
                 if (character.getCombatRating() > MIN_CR) {
                     Set<Feat> sortedFeats = sortFeatIdSet(feats, character.getUnlockableFeats());
+
+                    // Map<MovementMode, Collection<Feat>> movementFeats =
+                    // getFeatEnumMap(MovementMode.values(), feats,
+                    // character.getUnlockableMovementFeats());
+
                     Map<MovementMode, Collection<Feat>> movementFeats = new TreeMap<MovementMode, Collection<Feat>>();
                     for (MovementMode move : MovementMode.values()) {
                         Set<Feat> sortedMovementFeats = sortFeatIdSet(feats,
@@ -187,6 +192,11 @@ public class DCUOCensus {
                             movementFeats.put(move, sortedMovementFeats);
                         }
                     }
+
+                    // Map<Role, Collection<Feat>> roleFeats =
+                    // getFeatEnumMap(Role.values(), feats,
+                    // character.getUnlockableRoleFeats());
+
                     Map<Role, Collection<Feat>> roleFeats = new TreeMap<Role, Collection<Feat>>();
                     for (Role role : Role.values()) {
                         Set<Feat> sortedRoleFeats = sortFeatIdSet(feats, character.getUnlockableRoleFeatSet(role));
@@ -194,6 +204,7 @@ public class DCUOCensus {
                             roleFeats.put(role, sortedRoleFeats);
                         }
                     }
+
                     xlsxWriter.writeUnlockableFeats(character, sortedFeats, roleFeats, movementFeats);
                 }
             }
@@ -202,17 +213,30 @@ public class DCUOCensus {
         }
     }
 
+    private <E extends Enum<E>> Map<E, Collection<Feat>> getFeatEnumMap(E[] values, Map<Long, Feat> feats,
+            Map<E, Set<Long>> featIdMap) {
+        Map<E, Collection<Feat>> featMap = new TreeMap<E, Collection<Feat>>();
+        for (E value : values) {
+            Set<Feat> sortedFeats = sortFeatIdSet(feats, featIdMap.get(value));
+            if (sortedFeats != null && !sortedFeats.isEmpty()) {
+                featMap.put(value, sortedFeats);
+            }
+        }
+        return featMap;
+    }
+
     private Set<Feat> sortFeatIdSet(Map<Long, Feat> feats, Set<Long> featIds) {
         Set<Feat> sortedFeats = new TreeSet<Feat>(FeatComparator.getInstance());
-
-        for (Long featId : featIds) {
-            Feat feat = feats.get(featId);
-            if (feat != null) {
-                sortedFeats.add(feat);
-            } else {
-                Feat missingFeat = new Feat();
-                missingFeat.setId(featId);
-                sortedFeats.add(missingFeat);
+        if (featIds != null && !featIds.isEmpty()) {
+            for (Long featId : featIds) {
+                Feat feat = feats.get(featId);
+                if (feat != null) {
+                    sortedFeats.add(feat);
+                } else {
+                    Feat missingFeat = new Feat();
+                    missingFeat.setId(featId);
+                    sortedFeats.add(missingFeat);
+                }
             }
         }
         return sortedFeats;
@@ -313,23 +337,33 @@ public class DCUOCensus {
         return feats;
     }
 
-    @SuppressWarnings("unchecked")
     private static Map<Long, Item> loadItems() {
-        Map<Long, Item> items = null;
+        return loadSerializedMap(ALL_ITEMS_SER);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> Map<Long, T> loadSerializedMap(String filename) {
+        Map<Long, T> map = null;
         ObjectInputStream objStreamIn = null;
         try {
-            InputStream streamIn = new FileInputStream(ALL_ITEMS_SER);
-            objStreamIn = new ObjectInputStream(streamIn);
-            Object obj = objStreamIn.readObject();
-            if (obj instanceof Map<?, ?>) {
-                items = (Map<Long, Item>) obj;
+            File file = new File(filename);
+            long now = System.currentTimeMillis();
+            logger.debug("Now: " + now);
+            logger.debug("Mod: " + file.lastModified());
+            if (file.lastModified() > (now - 1000 * 60 * 60 * 24)) {
+                InputStream streamIn = new FileInputStream(filename);
+                objStreamIn = new ObjectInputStream(streamIn);
+                Object obj = objStreamIn.readObject();
+                if (obj instanceof Map<?, ?>) {
+                    map = (Map<Long, T>) obj;
+                }
             }
         } catch (ClassNotFoundException e) {
-            logger.warn(ALL_ITEMS_SER + " is incompatible with this version. Reading items from DCUO.");
+            logger.warn(filename + " is incompatible with this version. Reading items from DCUO.");
         } catch (FileNotFoundException fnfe) {
-            logger.warn(ALL_ITEMS_SER + " file not found. Reading items from DCUO.");
+            logger.warn(filename + " file not found. Reading items from DCUO.");
         } catch (InvalidClassException fnfe) {
-            logger.warn(ALL_ITEMS_SER + " is incompatible with this version. Reading items from DCUO.");
+            logger.warn(filename + " is incompatible with this version. Reading items from DCUO.");
         } catch (IOException ioe) {
             logger.error("Exception: " + ioe, ioe);
         } finally {
@@ -340,7 +374,7 @@ public class DCUOCensus {
                 }
             }
         }
-        return items;
+        return map;
     }
 
     private Set<Character> processCharacters(XLSXWriter xlsxWriter) throws UnsupportedEncodingException, IOException {
@@ -492,12 +526,18 @@ public class DCUOCensus {
     }
 
     private void addMissingFeats(Map<Long, Feat> feats) {
+        List<Role> tankRole = new ArrayList<Role>();
+        tankRole.add(Role.Tank);
         addFeat(feats, 713944, "General", "", 10, 0, "Tanks Very Much", "Achieve level 10 and gain the Tank Role", 10,
-                IconId.GENERAL, null, null, null, "Tank");
+                IconId.GENERAL, null, null, null, tankRole);
+        List<Role> controllerRole = new ArrayList<Role>();
+        controllerRole.add(Role.Controller);
         addFeat(feats, 713945, "General", "", 10, 0, "Mission Control", "Achieve level 10 and gain the Controller Role",
-                10, IconId.GENERAL, null, null, null, "Controller");
+                10, IconId.GENERAL, null, null, null, controllerRole);
+        List<Role> healerRole = new ArrayList<Role>();
+        healerRole.add(Role.Healer);
         addFeat(feats, 926019, "General", "", 10, 0, "The Healing Touch", "Achieve level 10 and gain the Healer Role",
-                10, IconId.GENERAL, null, null, null, "Healer");
+                10, IconId.GENERAL, null, null, null, healerRole);
 
         addFeat(feats, 715081, "General", "", 10, 0, "Knight for Justice",
                 "Achieve level 30 as a hero mentored by Batman", 25, IconId.GENERAL, Alignment.Hero, null, Origin.Tech);
@@ -684,12 +724,12 @@ public class DCUOCensus {
             String name, String desc, int reward, IconId iconId, Alignment alignment, MovementMode movementMode,
             Origin origin) {
         addFeat(feats, id, cat, subCat, order1, order2, name, desc, reward, iconId, alignment, movementMode, origin,
-                "");
+                null);
     }
 
     private static void addFeat(Map<Long, Feat> feats, long id, String cat, String subCat, int order1, int order2,
             String name, String desc, int reward, IconId iconId, Alignment alignment, MovementMode movementMode,
-            Origin origin, String role) {
+            Origin origin, List<Role> roles) {
         Feat feat = new Feat();
         feat.setId(id);
         feat.setCategory(cat);
@@ -705,7 +745,7 @@ public class DCUOCensus {
         feat.setReward(reward);
         feat.setAlignment(alignment);
         feat.setOrigin(origin);
-        feat.setRole(role);
+        feat.setRoles(roles);
         feat.setMovementMode(movementMode);
         feat.setIconId(iconId == null ? 0 : iconId.getId());
         feat.setImagePath("/files/dcuo/images/static/items/" + feat.getIconId() + ".png");

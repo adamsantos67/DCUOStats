@@ -4,25 +4,9 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class CharactersItems {
-    private List<CharactersItem> charactersItemList;
-    private long returned;
-
+public class CharactersItems extends TypeHolder<CharactersItem> {
     @JsonProperty("characters_item_list")
-    public List<CharactersItem> getCharactersItemList() {
-        return charactersItemList;
+    public List<CharactersItem> getObjectList() {
+        return super.getObjectList();
     }
-
-    public void setCharactersItemList(List<CharactersItem> charactersItemList) {
-        this.charactersItemList = charactersItemList;
-    }
-
-    public long getReturned() {
-        return returned;
-    }
-
-    public void setReturned(long returned) {
-        this.returned = returned;
-    }
-
 }

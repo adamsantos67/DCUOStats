@@ -36,11 +36,14 @@ import com.aksantos.dcuocensus.models.Personalities;
 import com.aksantos.dcuocensus.models.Personality;
 import com.aksantos.dcuocensus.models.Reward;
 import com.aksantos.dcuocensus.models.Rewards;
+import com.aksantos.dcuocensus.models.Type;
+import com.aksantos.dcuocensus.models.TypeHolder;
 import com.aksantos.dcuocensus.models.enums.Alignment;
 import com.aksantos.dcuocensus.models.enums.Gender;
 import com.aksantos.dcuocensus.models.enums.MovementMode;
 import com.aksantos.dcuocensus.models.enums.Origin;
 import com.aksantos.dcuocensus.models.enums.Power;
+import com.aksantos.dcuocensus.models.enums.Role;
 import com.aksantos.dcuocensus.models.enums.Weapon;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -66,7 +69,7 @@ public class CensusParser {
         if (jsonUrl != null) {
             try {
                 CharCompletedFeats mappings = mapper.readValue(jsonUrl, CharCompletedFeats.class);
-                for (CharCompletedFeat compFeat : mappings.getFeatList()) {
+                for (CharCompletedFeat compFeat : mappings.getObjectList()) {
                     feats.add(compFeat.getFeatId());
                 }
             } catch (JsonParseException e) {
@@ -105,7 +108,7 @@ public class CensusParser {
         if (jsonUrl != null) {
             try {
                 CharIdMappings mappings = mapper.readValue(jsonUrl, CharIdMappings.class);
-                List<CharIdMapping> mappingList = mappings.getMappingList();
+                List<CharIdMapping> mappingList = mappings.getObjectList();
                 if (mappingList != null && !mappingList.isEmpty()) {
                     oldId = mappingList.get(0).getOldId();
                 }
@@ -120,25 +123,8 @@ public class CensusParser {
         return oldId;
     }
 
-    public Map<Long, Reward> parseRewards(URL rewardsUrl) {
-        Map<Long, Reward> rewards = new TreeMap<Long, Reward>();
-
-        if (rewardsUrl != null) {
-            try {
-                Rewards rewardList = mapper.readValue(rewardsUrl, Rewards.class);
-
-                for (Reward reward : rewardList.getFeatRewardList()) {
-                    rewards.put(reward.getId(), reward);
-                }
-            } catch (JsonParseException e) {
-                logger.error("Exception: " + e, e);
-            } catch (JsonMappingException e) {
-                logger.error("Exception: " + e, e);
-            } catch (IOException e) {
-                logger.error("Exception: " + e, e);
-            }
-        }
-        return rewards;
+    public Map<Long, Reward> parseRewards(URL jsonUrl) {
+        return parseTypes(jsonUrl, Rewards.class);
     }
 
     public List<CharactersItem> parseCharacterItems(URL charUrl) {
@@ -147,7 +133,7 @@ public class CensusParser {
         if (charUrl != null) {
             try {
                 CharactersItems charactersItems = mapper.readValue(charUrl, CharactersItems.class);
-                List<CharactersItem> charList = charactersItems.getCharactersItemList();
+                List<CharactersItem> charList = charactersItems.getObjectList();
                 charItems.addAll(charList);
             } catch (JsonParseException e) {
                 logger.error("Exception: " + e, e);
@@ -168,7 +154,7 @@ public class CensusParser {
         if (charUrl != null) {
             try {
                 Characters characters = mapper.readValue(charUrl, Characters.class);
-                List<Character> charList = characters.getCharacterList();
+                List<Character> charList = characters.getObjectList();
                 if (charList.size() > 0) {
                     character = charList.get(0);
 
@@ -237,7 +223,7 @@ public class CensusParser {
             try {
                 Feats featList = mapper.readValue(featUrl, Feats.class);
 
-                for (Feat feat : featList.getFeatList()) {
+                for (Feat feat : featList.getObjectList()) {
                     FeatCategory category = categories.get(feat.getCategoryId());
                     if (category != null) {
                         FeatCategory parentCat = categories.get(category.getParentId());
@@ -253,13 +239,10 @@ public class CensusParser {
                     }
                     String predicate = feat.getPredicate();
                     if (predicate != null && predicate.length() > 0) {
-                        String alignStr = findPatterns(factionPattern, predicate);
-                        if (alignStr != null && alignStr.length() > 0) {
-                            feat.setAlignment(Alignment.valueOf(alignStr));
-                        }
-                        feat.setOriginStr(findPatterns(originPattern, predicate));
-                        feat.setRole(findPatterns(rolePattern, predicate));
-                        feat.setMovementModeStr(findPatterns(movementPattern, predicate));
+                        feat.setAlignments(findPatterns(factionPattern, predicate, Alignment.class));
+                        feat.setOrigins(findPatterns(originPattern, predicate, Origin.class));
+                        feat.setRoles(findPatterns(rolePattern, predicate, Role.class));
+                        feat.setMovementModes(findPatterns(movementPattern, predicate, MovementMode.class));
                     }
                     if ("Quick to Defend".equals(feat.getNameEn())) {
                         if (feat.getDescriptionEn().contains("Mogo")) {
@@ -326,26 +309,35 @@ public class CensusParser {
         return items;
     }
 
-    private String findPatterns(Pattern pattern, String predicateStr) {
+    private <E extends Enum<E>> List<E> findPatterns(Pattern pattern, String predicateStr, Class<E> type) {
+        List<E> retvals = new ArrayList<E>();
         Matcher matcher = pattern.matcher(predicateStr);
-        StringBuilder sb = new StringBuilder();
         while (matcher.find()) {
-            if (sb.length() > 0) {
-                sb.append(", ");
-            }
-            sb.append(matcher.group(1));
+            retvals.add(E.valueOf(type, matcher.group(1)));
         }
-        return sb.toString();
+        return retvals;
     }
 
-    public Map<Long, FeatCategory> parseFeatCategories(URL categoryUrl) {
-        Map<Long, FeatCategory> categories = new TreeMap<Long, FeatCategory>();
+    public Map<Long, FeatCategory> parseFeatCategories(URL jsonUrl) {
+        return parseTypes(jsonUrl, FeatCategories.class);
+    }
 
-        if (categoryUrl != null) {
+    public Map<Long, ItemCategory> parseItemCategories(URL jsonUrl) {
+        return parseTypes(jsonUrl, ItemCategories.class);
+    }
+
+    public Map<Long, Personality> parsePersonalities(URL jsonUrl) {
+        return parseTypes(jsonUrl, Personalities.class);
+    }
+    
+    public <T extends Type, H extends TypeHolder<T>> Map<Long, T> parseTypes(URL jsonUrl, Class<H> holderClass) {
+        Map<Long, T> typeMap = new TreeMap<Long, T>();
+
+        if (jsonUrl != null) {
             try {
-                FeatCategories categoryList = mapper.readValue(categoryUrl, FeatCategories.class);
-                for (FeatCategory featCategory : categoryList.getFeatCategoryList()) {
-                    categories.put(featCategory.getId(), featCategory);
+                H holder = mapper.readValue(jsonUrl, holderClass);
+                for (T type : holder.getObjectList()) {
+                    typeMap.put(type.getId(), type);
                 }
             } catch (JsonParseException e) {
                 logger.error("Exception: " + e, e);
@@ -355,46 +347,6 @@ public class CensusParser {
                 logger.error("Exception: " + e, e);
             }
         }
-        return categories;
-    }
-
-    public Map<Long, ItemCategory> parseItemCategories(URL categoryUrl) {
-        Map<Long, ItemCategory> categories = new TreeMap<Long, ItemCategory>();
-
-        if (categoryUrl != null) {
-            try {
-                ItemCategories categoryList = mapper.readValue(categoryUrl, ItemCategories.class);
-                for (ItemCategory itemCategory : categoryList.getItemCategoryList()) {
-                    categories.put(itemCategory.getId(), itemCategory);
-                }
-            } catch (JsonParseException e) {
-                logger.error("Exception: " + e, e);
-            } catch (JsonMappingException e) {
-                logger.error("Exception: " + e, e);
-            } catch (IOException e) {
-                logger.error("Exception: " + e, e);
-            }
-        }
-        return categories;
-    }
-
-    public Map<Long, Personality> parsePersonalities(URL categoryUrl) {
-        Map<Long, Personality> personalityMap = new TreeMap<Long, Personality>();
-
-        if (categoryUrl != null) {
-            try {
-                Personalities personalities = mapper.readValue(categoryUrl, Personalities.class);
-                for (Personality personality : personalities.getPersonalityList()) {
-                    personalityMap.put(personality.getId(), personality);
-                }
-            } catch (JsonParseException e) {
-                logger.error("Exception: " + e, e);
-            } catch (JsonMappingException e) {
-                logger.error("Exception: " + e, e);
-            } catch (IOException e) {
-                logger.error("Exception: " + e, e);
-            }
-        }
-        return personalityMap;
+        return typeMap;
     }
 }

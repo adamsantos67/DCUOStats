@@ -2,8 +2,7 @@ package com.aksantos.dcuocensus.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ItemCategory {
-    private long id;
+public class ItemCategory extends Type {
     private String categoryName = null;
     private long parentId = 0;
     private String codeName = null;
@@ -11,11 +10,7 @@ public class ItemCategory {
 
     @JsonProperty("item_category_id")
     public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
+        return super.getId();
     }
 
     @JsonProperty("category_name")

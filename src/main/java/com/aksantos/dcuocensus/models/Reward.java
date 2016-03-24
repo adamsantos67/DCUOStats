@@ -2,18 +2,13 @@ package com.aksantos.dcuocensus.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Reward {
-	private long id;
+public class Reward extends Type {
 	private long difficulty;
 	private long xp;
 
 	@JsonProperty("feat_reward_id")
 	public long getId() {
-		return id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
+		return super.getId();
 	}
 
 	public long getDifficulty() {

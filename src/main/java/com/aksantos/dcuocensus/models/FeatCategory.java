@@ -2,19 +2,14 @@ package com.aksantos.dcuocensus.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class FeatCategory {
-    private long id;
+public class FeatCategory extends Type {
     private Name name;
     private long parentId = 0;
     private int order = 0;
 
     @JsonProperty("feat_category_id")
     public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
+        return super.getId();
     }
 
     @JsonProperty("category_name")

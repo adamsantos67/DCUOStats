@@ -15,8 +15,7 @@ import com.aksantos.dcuocensus.models.enums.Role;
 import com.aksantos.dcuocensus.models.enums.Weapon;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Character {
-    private long id;
+public class Character extends Type {
     private String name;
     private int level;
     private int combatRating;
@@ -70,11 +69,7 @@ public class Character {
 
     @JsonProperty("character_id")
     public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
+        return super.getId();
     }
 
     public String getName() {

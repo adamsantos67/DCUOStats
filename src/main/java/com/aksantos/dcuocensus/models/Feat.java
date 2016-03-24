@@ -1,16 +1,17 @@
 package com.aksantos.dcuocensus.models;
 
 import java.io.Serializable;
+import java.util.List;
 
 import com.aksantos.dcuocensus.models.enums.Alignment;
 import com.aksantos.dcuocensus.models.enums.MovementMode;
 import com.aksantos.dcuocensus.models.enums.Origin;
+import com.aksantos.dcuocensus.models.enums.Role;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Feat implements Serializable {
+public class Feat extends Type implements Serializable {
     private static final long serialVersionUID = -7004871132471799014L;
 
-    private long id = 0;
     private Name name;
     private Name description;
     private long categoryId = 0;
@@ -24,7 +25,7 @@ public class Feat implements Serializable {
     private String imagePath = "";
     private Alignment alignment = null;
     private MovementMode movementMode = null;
-    private String role = "";
+    private List<Role> roles = null;
     private Origin origin = null;
     private int order1 = 0;
     private int order2 = 0;
@@ -32,11 +33,7 @@ public class Feat implements Serializable {
 
     @JsonProperty("feat_id")
     public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
+        return super.getId();
     }
 
     public Name getName() {
@@ -148,6 +145,14 @@ public class Feat implements Serializable {
         this.alignment = alignment;
     }
 
+    public void setAlignments(List<Alignment> alignments) {
+        if (alignments != null && !alignments.isEmpty()) {
+            setAlignment(alignments.get(0));
+        } else {
+            setAlignment(null);
+        }
+    }
+
     public MovementMode getMovementMode() {
         return movementMode;
     }
@@ -156,20 +161,20 @@ public class Feat implements Serializable {
         this.movementMode = movementMode;
     }
 
-    public void setMovementModeStr(String movementMode) {
-        try {
-            this.movementMode = MovementMode.valueOf(movementMode);
-        } catch (IllegalArgumentException e) {
-            this.movementMode = null;
+    public void setMovementModes(List<MovementMode> movementModes) {
+        if (movementModes != null && !movementModes.isEmpty()) {
+            setMovementMode(movementModes.get(0));
+        } else {
+            setMovementMode(null);
         }
     }
 
-    public String getRole() {
-        return role;
+    public List<Role> getRoles() {
+        return roles;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setRoles(List<Role> roles) {
+        this.roles = roles;
     }
 
     public Origin getOrigin() {
@@ -180,11 +185,11 @@ public class Feat implements Serializable {
         this.origin = origin;
     }
 
-    public void setOriginStr(String origin) {
-        try {
-            this.origin = Origin.valueOf(origin);
-        } catch (IllegalArgumentException e) {
-            this.origin = null;
+    public void setOrigins(List<Origin> origins) {
+        if (origins != null && !origins.isEmpty()) {
+            setOrigin(origins.get(0));
+        } else {
+            setOrigin(null);
         }
     }
 

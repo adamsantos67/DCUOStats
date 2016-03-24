@@ -2,17 +2,12 @@ package com.aksantos.dcuocensus.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Personality {
-    private long id;
+public class Personality extends Type {
     private Name name;
 
     @JsonProperty("personality_id")
     public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
+        return super.getId();
     }
 
     public Name getName() {
