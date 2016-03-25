@@ -607,7 +607,8 @@ public class DCUOCensus {
         addFeat(feats, 3141835, "Episodes", "Phantom Zone & Science Spire", 150, 210, "Insecurity Devices",
                 "During the Science Spire Operation,", 25, IconId.SOLOS);
 
-        addFeat(feats, 3150281, "Seasonal", "St. Patrick's Day", 100, 20, "SPD", "", 10, IconId.ST_PATRICKS);
+        addFeat(feats, 3150281, "Seasonal", "St. Patrick's Day", 100, 20, "Luck o' the 5th Dimension", "Collect any 8 Base Items from the 2016 St. Patrick's Day event", 10, IconId.ST_PATRICKS);
+        addFeat(feats, 3302238, "Seasonal", "St. Patrick's Day", 100, 20, "Shamrock & Roll", "Use 20 Clover Bombs", 10, IconId.ST_PATRICKS);
 
     }
 
