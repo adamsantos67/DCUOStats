@@ -3,6 +3,8 @@ package com.aksantos.dcuocensus.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class FeatCategory extends Type {
+    private static final long serialVersionUID = -2437889911114680056L;
+
     private Name name;
     private long parentId = 0;
     private int order = 0;

@@ -3,7 +3,9 @@ package com.aksantos.dcuocensus.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Reward extends Type {
-	private long difficulty;
+    private static final long serialVersionUID = -5765909930494690735L;
+
+    private long difficulty;
 	private long xp;
 
 	@JsonProperty("feat_reward_id")

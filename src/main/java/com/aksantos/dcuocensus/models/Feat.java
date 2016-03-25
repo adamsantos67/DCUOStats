@@ -1,6 +1,5 @@
 package com.aksantos.dcuocensus.models;
 
-import java.io.Serializable;
 import java.util.List;
 
 import com.aksantos.dcuocensus.models.enums.Alignment;
@@ -9,8 +8,8 @@ import com.aksantos.dcuocensus.models.enums.Origin;
 import com.aksantos.dcuocensus.models.enums.Role;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Feat extends Type implements Serializable {
-    private static final long serialVersionUID = -7004871132471799014L;
+public class Feat extends Type {
+    private static final long serialVersionUID = 5703361648827126045L;
 
     private Name name;
     private Name description;

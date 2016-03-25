@@ -113,7 +113,7 @@ public class DCUOCensus {
 
             Map<Long, Feat> featsNeeded = initializeNeededFeats(feats);
 
-            List<Long> featsCompleted = new ArrayList<Long>();
+            Set<Long> featsCompleted = new HashSet<Long>();
 
             findNeededAndCompletedFeats(sortedCharacters, feats, featsNeeded, featsCompleted);
 
@@ -136,7 +136,7 @@ public class DCUOCensus {
     }
 
     private void processUnlockableFeats(Set<Character> sortedCharacters, Map<Long, Feat> feats,
-            List<Long> featsCompleted, XLSXWriter xlsxWriter) {
+            Set<Long> featsCompleted, XLSXWriter xlsxWriter) {
         try {
             for (Character character : sortedCharacters) {
                 if (character.getCombatRating() > MIN_CR) {
@@ -180,10 +180,10 @@ public class DCUOCensus {
                 if (character.getCombatRating() > MIN_CR) {
                     Set<Feat> sortedFeats = sortFeatIdSet(feats, character.getUnlockableFeats());
 
-                    // Map<MovementMode, Collection<Feat>> movementFeats =
-                    // getFeatEnumMap(MovementMode.values(), feats,
-                    // character.getUnlockableMovementFeats());
+                    Map<MovementMode, Collection<Feat>> movementFeats = getFeatEnumMap(MovementMode.values(), feats,
+                            character.getUnlockableMovementFeats());
 
+                    /*
                     Map<MovementMode, Collection<Feat>> movementFeats = new TreeMap<MovementMode, Collection<Feat>>();
                     for (MovementMode move : MovementMode.values()) {
                         Set<Feat> sortedMovementFeats = sortFeatIdSet(feats,
@@ -192,11 +192,11 @@ public class DCUOCensus {
                             movementFeats.put(move, sortedMovementFeats);
                         }
                     }
+*/
+                    Map<Role, Collection<Feat>> roleFeats = getFeatEnumMap(Role.values(), feats,
+                            character.getUnlockableRoleFeats());
 
-                    // Map<Role, Collection<Feat>> roleFeats =
-                    // getFeatEnumMap(Role.values(), feats,
-                    // character.getUnlockableRoleFeats());
-
+                    /*
                     Map<Role, Collection<Feat>> roleFeats = new TreeMap<Role, Collection<Feat>>();
                     for (Role role : Role.values()) {
                         Set<Feat> sortedRoleFeats = sortFeatIdSet(feats, character.getUnlockableRoleFeatSet(role));
@@ -204,7 +204,7 @@ public class DCUOCensus {
                             roleFeats.put(role, sortedRoleFeats);
                         }
                     }
-
+*/
                     xlsxWriter.writeUnlockableFeats(character, sortedFeats, roleFeats, movementFeats);
                 }
             }
@@ -243,7 +243,7 @@ public class DCUOCensus {
     }
 
     private void findNeededAndCompletedFeats(Set<Character> sortedCharacters, Map<Long, Feat> feats,
-            Map<Long, Feat> featsNeeded, List<Long> featsCompleted) {
+            Map<Long, Feat> featsNeeded, Set<Long> featsCompleted) {
         for (Character character : sortedCharacters) {
             try {
                 Set<Long> featIds = parser.parseCharacterFeats(new URL(characterFeatsUrl + character.getId()),
@@ -301,40 +301,8 @@ public class DCUOCensus {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private static Map<Long, Feat> loadFeats() {
-        Map<Long, Feat> feats = null;
-        ObjectInputStream objStreamIn = null;
-        try {
-            File file = new File(ALL_FEATS_SER);
-            long now = System.currentTimeMillis();
-            logger.debug("Now: " + now);
-            logger.debug("Mod: " + file.lastModified());
-            if (file.lastModified() > (now - 1000 * 60 * 60 * 24)) {
-                InputStream streamIn = new FileInputStream(ALL_FEATS_SER);
-                objStreamIn = new ObjectInputStream(streamIn);
-                Object obj = objStreamIn.readObject();
-                if (obj instanceof Map<?, ?>) {
-                    feats = (Map<Long, Feat>) obj;
-                }
-            }
-        } catch (ClassNotFoundException e) {
-            logger.warn(ALL_FEATS_SER + " is incompatible with this version. Reading feats from DCUO.");
-        } catch (FileNotFoundException fnfe) {
-            logger.warn(ALL_FEATS_SER + " file not found. Reading feats from DCUO.");
-        } catch (InvalidClassException fnfe) {
-            logger.warn(ALL_FEATS_SER + " is incompatible with this version. Reading feats from DCUO.");
-        } catch (IOException ioe) {
-            logger.error("Exception: " + ioe, ioe);
-        } finally {
-            if (objStreamIn != null) {
-                try {
-                    objStreamIn.close();
-                } catch (IOException ioe) {
-                }
-            }
-        }
-        return feats;
+        return loadSerializedMap(ALL_FEATS_SER);
     }
 
     private static Map<Long, Item> loadItems() {

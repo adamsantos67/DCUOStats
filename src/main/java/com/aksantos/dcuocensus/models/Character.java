@@ -16,6 +16,8 @@ import com.aksantos.dcuocensus.models.enums.Weapon;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Character extends Type {
+    private static final long serialVersionUID = 3782174885643794877L;
+
     private String name;
     private int level;
     private int combatRating;

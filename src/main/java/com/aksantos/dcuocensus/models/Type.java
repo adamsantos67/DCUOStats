@@ -1,6 +1,10 @@
 package com.aksantos.dcuocensus.models;
 
-public abstract class Type {
+import java.io.Serializable;
+
+public abstract class Type implements Serializable {
+    private static final long serialVersionUID = 1374830829973928458L;
+
     private long id = 0;
 
     public long getId() {
