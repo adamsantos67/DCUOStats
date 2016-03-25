@@ -12,7 +12,6 @@ import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -28,10 +27,8 @@ import com.aksantos.dcuocensus.models.Character;
 import com.aksantos.dcuocensus.models.CharactersItem;
 import com.aksantos.dcuocensus.models.Feat;
 import com.aksantos.dcuocensus.models.Item;
-import com.aksantos.dcuocensus.models.Name;
 import com.aksantos.dcuocensus.models.enums.Alignment;
 import com.aksantos.dcuocensus.models.enums.EquipmentSlot;
-import com.aksantos.dcuocensus.models.enums.IconId;
 import com.aksantos.dcuocensus.models.enums.MovementMode;
 import com.aksantos.dcuocensus.models.enums.Origin;
 import com.aksantos.dcuocensus.models.enums.Role;
@@ -145,27 +142,9 @@ public class DCUOCensus {
                     Map<MovementMode, Collection<Feat>> movementFeats = getFeatEnumMap(MovementMode.values(), feats,
                             character.getUnlockableMovementFeats());
 
-                    /*
-                     * Map<MovementMode, Collection<Feat>> movementFeats = new
-                     * TreeMap<MovementMode, Collection<Feat>>(); for
-                     * (MovementMode move : MovementMode.values()) { Set<Feat>
-                     * sortedMovementFeats = sortFeatIdSet(feats,
-                     * character.getUnlockableMovementFeatSet(move)); if
-                     * (sortedMovementFeats != null &&
-                     * !sortedMovementFeats.isEmpty()) { movementFeats.put(move,
-                     * sortedMovementFeats); } }
-                     */
                     Map<Role, Collection<Feat>> roleFeats = getFeatEnumMap(Role.values(), feats,
                             character.getUnlockableRoleFeats());
 
-                    /*
-                     * Map<Role, Collection<Feat>> roleFeats = new TreeMap<Role,
-                     * Collection<Feat>>(); for (Role role : Role.values()) {
-                     * Set<Feat> sortedRoleFeats = sortFeatIdSet(feats,
-                     * character.getUnlockableRoleFeatSet(role)); if
-                     * (sortedRoleFeats != null && !sortedRoleFeats.isEmpty()) {
-                     * roleFeats.put(role, sortedRoleFeats); } }
-                     */
                     xlsxWriter.writeUnlockableFeats(character, sortedFeats, roleFeats, movementFeats);
                 }
             }
@@ -241,8 +220,6 @@ public class DCUOCensus {
 
         if (feats == null) {
             feats = censusClient.getFeats();
-
-            addMissingFeats(feats);
         }
         return feats;
     }
@@ -422,238 +399,6 @@ public class DCUOCensus {
             logger.error(e.getMessage(), e);
         }
         return count;
-    }
-
-    private void addMissingFeats(Map<Long, Feat> feats) {
-        List<Role> tankRole = new ArrayList<Role>();
-        tankRole.add(Role.Tank);
-        addFeat(feats, 713944, "General", "", 10, 0, "Tanks Very Much", "Achieve level 10 and gain the Tank Role", 10,
-                IconId.GENERAL, null, null, null, tankRole);
-        List<Role> controllerRole = new ArrayList<Role>();
-        controllerRole.add(Role.Controller);
-        addFeat(feats, 713945, "General", "", 10, 0, "Mission Control", "Achieve level 10 and gain the Controller Role",
-                10, IconId.GENERAL, null, null, null, controllerRole);
-        List<Role> healerRole = new ArrayList<Role>();
-        healerRole.add(Role.Healer);
-        addFeat(feats, 926019, "General", "", 10, 0, "The Healing Touch", "Achieve level 10 and gain the Healer Role",
-                10, IconId.GENERAL, null, null, null, healerRole);
-
-        addFeat(feats, 715081, "General", "", 10, 0, "Knight for Justice",
-                "Achieve level 30 as a hero mentored by Batman", 25, IconId.GENERAL, Alignment.Hero, null, Origin.Tech);
-        addFeat(feats, 715082, "General", "", 10, 0, "Warrior of Truth",
-                "Achieve level 30 as a hero mentored by Wonder Woman", 25, IconId.GENERAL, Alignment.Hero, null,
-                Origin.Magic);
-        addFeat(feats, 715083, "General", "", 10, 0, "Champion of Earth",
-                "Achieve level 30 as a hero mentored by Superman", 25, IconId.GENERAL, Alignment.Hero, null,
-                Origin.Meta);
-
-        addFeat(feats, 938050, "General", "", 10, 0, "The Queen's Favorite",
-                "Achieve level 30 as a villain mentored by Circe", 25, IconId.GENERAL, Alignment.Villain, null,
-                Origin.Magic);
-        addFeat(feats, 938051, "General", "", 10, 0, "Criminal Mastermind",
-                "Achieve level 30 as a villain mentored by Lex Luthor", 25, IconId.GENERAL, Alignment.Villain, null,
-                Origin.Meta);
-        addFeat(feats, 938052, "General", "", 10, 0, "The Joker in the Deck",
-                "Achieve level 30 as a villain mentored by the Joker", 25, IconId.GENERAL, Alignment.Villain, null,
-                Origin.Tech);
-
-        addFeat(feats, 715084, "General", "", 10, 0, "Agile Ace", "Achieve level 30 with an Agile movement mode", 25,
-                IconId.GENERAL, null, MovementMode.Acrobat);
-        addFeat(feats, 715085, "General", "", 10, 0, "Aerial Antics", "Achieve level 30 with an Aerial movement mode",
-                25, IconId.GENERAL, null, MovementMode.Flight);
-        addFeat(feats, 715086, "General", "", 10, 0, "Swiftly Supreme", "Achieve level 30 with a Swift movement mode",
-                25, IconId.GENERAL, null, MovementMode.Speed);
-        addFeat(feats, 959776, "General", "", 10, 0, "Master Escape Artist", "Use the Breakout ability 100 times", 10,
-                IconId.GENERAL);
-
-        addWTTeamUp(feats, 2970885, "Superman & Batman");
-        addWTTeamUp(feats, 2970892, "Power Girl & Donna Troy");
-        addWTTeamUp(feats, 2970899, "Steel & Supergirl");
-        addWTTeamUp(feats, 2970906, "The Huntress & Guy Gardner");
-        addWTTeamUpChecklist(feats, 2970913, Alignment.Hero);
-        addWTChecklist(feats, 2970930, Alignment.Hero);
-
-        addWTTeamUp(feats, 2970950, "General Zod & Ursa");
-        addWTTeamUp(feats, 2970957, "The Joker & Lex Luthor");
-        addWTTeamUp(feats, 2970964, "Catwoman & Cheetah");
-        addWTTeamUp(feats, 2970971, "Bane & Bizarro");
-        addWTTeamUpChecklist(feats, 2970978, Alignment.Villain);
-        addWTChecklist(feats, 2970995, Alignment.Villain);
-
-        addOanFeat(feats, 3069406, "Legends PvE: Conviction", "Complete Oan Sciencells without being knocked out", 25);
-        addOanFeat(feats, 3069419, "Legends PvE: Faster Than Light Waves",
-                "Complete Oan Sciencells in 20 minutes or less", 25);
-        addOanFeat(feats, 3069425, "Legends PvE: Parole Denied",
-                "Defeat Red Lantern Vice, Yellow Lantern Lyssa Drak and Evil Star in the Oan Sciencells", 25,
-                Alignment.Hero);
-        addOanFeat(feats, 3069442, "Legends PvE: Parole Granted",
-                "Defeat Red Lantern Vice, Green Lantern Guy Gardner and Evil Star in the Oan Sciencells", 25,
-                Alignment.Villain);
-
-        addOanTeamUp(feats, 3069463, "Batman & Robin");
-        addOanTeamUp(feats, 3069470, "John Stewart & Kyle Raynor");
-        addOanTeamUp(feats, 3069477, "Hal Jordan & Saint Walker");
-        addOanTeamUp(feats, 3069484, "Nightwing & Kilowog");
-        addOanTeamUpChecklist(feats, 3069491, Alignment.Hero);
-        addOanChecklist(feats, 3069508, Alignment.Hero);
-
-        addOanTeamUp(feats, 3069528, "Black Adam & Circe");
-        addOanTeamUp(feats, 3069535, "Cheetah & Lex Luthor");
-        addOanTeamUp(feats, 3069542, "Harley Quinn & Arkillo");
-        addOanTeamUp(feats, 3069549, "The Joker & Atrocitus");
-        addOanTeamUpChecklist(feats, 3069556, Alignment.Villain);
-        addOanChecklist(feats, 3069573, Alignment.Villain);
-
-        addFeat(feats, 963630, "General", "", 10, 0, "Red Barrel Buster Rookie", "Break 5 red Explosion barrels", 10,
-                IconId.ALERTS);
-        addFeat(feats, 938806, "Styles", "", 40, 0, "Well-Equipped", "Collect 10 styles", 10, IconId.STYLES);
-
-        // Put the Fun in Malfunction?
-        addFeat(feats, 3088059, "Episodes", "Phantom Zone & Science Spire", 150, 210, "Nothin' But Chasm",
-                "During the Phantom Zone Operation,", 10, IconId.ALERTS);
-        // Nothin' But Chasm?
-        addFeat(feats, 3088101, "Episodes", "Phantom Zone & Science Spire", 150, 210, "Put the Fun in Malfunction",
-                "During the Phantom Zone Operation,", 10, IconId.ALERTS);
-        // Kryptonian Cabal?
-        addFeat(feats, 3088127, "Episodes", "Phantom Zone & Science Spire", 150, 210, "PZ",
-                "During the Phantom Zone Operation,", 10, IconId.ALERTS);
-        addFeat(feats, 3088160, "Episodes", "Phantom Zone & Science Spire", 150, 210, "Supply Shortage",
-                "During the Phantom Zone Operation defeat the final bosses on the first attempt without allowing any of the 6 Supply Containers from being taken",
-                10, IconId.ALERTS);
-        // Funstone?
-        addFeat(feats, 3088301, "Episodes", "Phantom Zone & Science Spire", 150, 210, "PZ",
-                "During the Phantom Zone Operation,", 10, IconId.ALERTS);
-        addFeat(feats, 3096155, "Episodes", "Phantom Zone & Science Spire", 150, 210, "Portal Patrol",
-                "During the Phantom Zone Operation, prevent all of Zod's forces in the first room of Fort Rozz from escaping through the portal",
-                10, IconId.ALERTS);
-        // None Shall Pass? or Lights On, Lights Off?
-        addFeat(feats, 3135541, "Episodes", "Phantom Zone & Science Spire", 150, 210, "PZe",
-                "During the Phantom Zone (Elite) Operation,", 10, IconId.ALERTS);
-        addFeat(feats, 3135577, "Episodes", "Phantom Zone & Science Spire", 150, 210, "PZe",
-                "During the Phantom Zone (Elite) Operation,", 10, IconId.ALERTS);
-        addFeat(feats, 3141827, "Episodes", "Phantom Zone & Science Spire", 150, 210, "Krypton-Spite",
-                "During the Science Spire Operation,", 25, IconId.SOLOS);
-        addFeat(feats, 3141831, "Episodes", "Phantom Zone & Science Spire", 150, 210, "Energizer",
-                "During the Science Spire Operation,", 25, IconId.SOLOS);
-        addFeat(feats, 3141835, "Episodes", "Phantom Zone & Science Spire", 150, 210, "Insecurity Devices",
-                "During the Science Spire Operation,", 25, IconId.SOLOS);
-
-        addFeat(feats, 3150281, "Seasonal", "St. Patrick's Day", 100, 20, "Luck o' the 5th Dimension",
-                "Collect any 8 Base Items from the 2016 St. Patrick's Day event", 10, IconId.ST_PATRICKS);
-        addFeat(feats, 3302238, "Seasonal", "St. Patrick's Day", 100, 20, "Shamrock & Roll", "Use 20 Clover Bombs", 10,
-                IconId.ST_PATRICKS);
-
-    }
-
-    private static void addWTTeamUp(Map<Long, Feat> feats, long id, String team) {
-        addTeamUp(feats, id, 9, "Watchtower Containment Facility", team);
-    }
-
-    private static void addWTTeamUpChecklist(Map<Long, Feat> feats, long id, Alignment alignment) {
-        addTeamUpChecklist(feats, id, 9, "Watchtower Containment Facility", alignment);
-    }
-
-    private static void addWTChecklist(Map<Long, Feat> feats, long id, Alignment alignment) {
-        addChecklist(feats, id, 9, "Watchtower Containment Facility", alignment);
-    }
-
-    private static void addOanTeamUp(Map<Long, Feat> feats, long id, String team) {
-        addTeamUp(feats, id, 12, "Oan Sciencells", team);
-    }
-
-    private static void addOanTeamUpChecklist(Map<Long, Feat> feats, long id, Alignment alignment) {
-        addTeamUpChecklist(feats, id, 12, "Oan Sciencells", alignment);
-    }
-
-    private static void addOanChecklist(Map<Long, Feat> feats, long id, Alignment alignment) {
-        addChecklist(feats, id, 12, "Oan Sciencells", alignment);
-    }
-
-    private static void addOanFeat(Map<Long, Feat> feats, long id, String name, String desc, int reward) {
-        addOanFeat(feats, id, name, desc, reward, null);
-    }
-
-    private static void addOanFeat(Map<Long, Feat> feats, long id, String name, String desc, int reward,
-            Alignment alignment) {
-        addLegendsPvEFeat(feats, id, "Oan Sciencells", 12, name, desc, reward, IconId.ALERTS, alignment);
-    }
-
-    private static void addTeamUp(Map<Long, Feat> feats, long id, int order, String name, String team) {
-        addLegendsPvEFeat(feats, id, name, order, "Team-Up: " + team,
-                "Complete the Legends: " + name
-                        + " PvE Event as one member of this team while the other is also in the group",
-                10, IconId.ALERTS);
-    }
-
-    private static void addTeamUpChecklist(Map<Long, Feat> feats, long id, int order, String name,
-            Alignment alignment) {
-        addLegendsPvEFeat(feats, id, name, order, "Team-Up Checklist: " + alignment,
-                "Complete all of the following " + alignment + " Team-Ups", 25, IconId.ALERTS);
-    }
-
-    private static void addChecklist(Map<Long, Feat> feats, long id, int order, String name, Alignment alignment) {
-        addLegendsPvEFeat(feats, id, name, order, "Checklist: " + alignment,
-                "Complete the Legends: " + name + " PvE Event as each of the following Legends Characters", 10,
-                IconId.ALERTS);
-    }
-
-    private static void addLegendsPvEFeat(Map<Long, Feat> feats, long id, String subCat, int order, String name,
-            String desc, int reward, IconId iconId) {
-        addLegendsPvEFeat(feats, id, subCat, order, name, desc, reward, iconId, null);
-    }
-
-    private static void addLegendsPvEFeat(Map<Long, Feat> feats, long id, String subCat, int order, String name,
-            String desc, int reward, IconId iconId, Alignment alignment) {
-        addFeat(feats, id, "Legends PvE", subCat, 0, order, name, desc, reward, iconId, alignment);
-    }
-
-    private static void addFeat(Map<Long, Feat> feats, long id, String cat, String subCat, int order1, int order2,
-            String name, String desc, int reward, IconId iconId) {
-        addFeat(feats, id, cat, subCat, order1, order2, name, desc, reward, iconId, null);
-    }
-
-    private static void addFeat(Map<Long, Feat> feats, long id, String cat, String subCat, int order1, int order2,
-            String name, String desc, int reward, IconId iconId, Alignment alignment) {
-        addFeat(feats, id, cat, subCat, order1, order2, name, desc, reward, iconId, alignment, null);
-    }
-
-    private static void addFeat(Map<Long, Feat> feats, long id, String cat, String subCat, int order1, int order2,
-            String name, String desc, int reward, IconId iconId, Alignment alignment, MovementMode movementMode) {
-        addFeat(feats, id, cat, subCat, order1, order2, name, desc, reward, iconId, alignment, movementMode, null);
-    }
-
-    private static void addFeat(Map<Long, Feat> feats, long id, String cat, String subCat, int order1, int order2,
-            String name, String desc, int reward, IconId iconId, Alignment alignment, MovementMode movementMode,
-            Origin origin) {
-        addFeat(feats, id, cat, subCat, order1, order2, name, desc, reward, iconId, alignment, movementMode, origin,
-                null);
-    }
-
-    private static void addFeat(Map<Long, Feat> feats, long id, String cat, String subCat, int order1, int order2,
-            String name, String desc, int reward, IconId iconId, Alignment alignment, MovementMode movementMode,
-            Origin origin, List<Role> roles) {
-        Feat feat = new Feat();
-        feat.setId(id);
-        feat.setCategory(cat);
-        feat.setSubCategory(subCat);
-        feat.setOrder1(order1);
-        feat.setOrder2(order2);
-        Name newName = new Name();
-        newName.setEn(name);
-        feat.setName(newName);
-        Name newDesc = new Name();
-        newDesc.setEn(desc);
-        feat.setDescription(newDesc);
-        feat.setReward(reward);
-        feat.setAlignment(alignment);
-        feat.setOrigin(origin);
-        feat.setRoles(roles);
-        feat.setMovementMode(movementMode);
-        feat.setIconId(iconId == null ? 0 : iconId.getId());
-        feat.setImagePath("/files/dcuo/images/static/items/" + feat.getIconId() + ".png");
-        if (!feats.containsKey(feat.getId())) {
-            feats.put(feat.getId(), feat);
-        }
     }
 
     private static Set<String> readCharacterNames() {
