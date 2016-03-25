@@ -1,8 +1,5 @@
 package com.aksantos.dcuocensus;
 
-import java.awt.Graphics;
-import java.awt.Insets;
-import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,8 +12,6 @@ import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -26,24 +21,16 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import javax.imageio.ImageIO;
-import javax.swing.JFrame;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.aksantos.dcuocensus.models.Character;
 import com.aksantos.dcuocensus.models.CharactersItem;
 import com.aksantos.dcuocensus.models.Feat;
-import com.aksantos.dcuocensus.models.FeatCategory;
 import com.aksantos.dcuocensus.models.Item;
-import com.aksantos.dcuocensus.models.ItemCategory;
 import com.aksantos.dcuocensus.models.Name;
-import com.aksantos.dcuocensus.models.Personality;
-import com.aksantos.dcuocensus.models.Reward;
 import com.aksantos.dcuocensus.models.enums.Alignment;
 import com.aksantos.dcuocensus.models.enums.EquipmentSlot;
-import com.aksantos.dcuocensus.models.enums.Gender;
 import com.aksantos.dcuocensus.models.enums.IconId;
 import com.aksantos.dcuocensus.models.enums.MovementMode;
 import com.aksantos.dcuocensus.models.enums.Origin;
@@ -62,38 +49,13 @@ public class DCUOCensus {
     private static final String ALL_FEATS_SER = "allFeats.ser";
     private static final String ALL_ITEMS_SER = "allItems.ser";
     private static final Long JAILBIRD_FEAT_ID = 959767l;
-    private static final String serviceHost = "http://census.daybreakgames.com";
-    private static final String serviceUrl = serviceHost + "/s:BluesStats/get/dcuo:v1/";
-    private static final String rewardUrl = serviceUrl + "feat_reward?c:limit=100";
-    private static final String featsUrl = serviceUrl + "feat?c:limit=10000";
-    private static final String itemsUrl = serviceUrl + "item?c:limit=100";
-    private static final String itemByIdUrl = serviceUrl + "item?item_id=";
-    private static final String featCategoriesUrl = serviceUrl + "feat_category?c:limit=1000";
-    private static final String itemCategoriesUrl = serviceUrl + "item_category?c:limit=1000";
-    private static final String personalityUrl = serviceUrl + "personality?c:limit=1000";
-    private static final String characterUrl = serviceUrl + "character?world_id=2&name=";
-    private static final String characterIdMapUrl = serviceUrl + "char_id_mapping?new_character_id=";
-    private static final String characterItemsUrl = serviceUrl + "characters_item?c:limit=1000&character_id=";
-
-    private static final String characterQuery = "&c:lang=en";
-
-    private static final String characterFeatsUrl = serviceUrl
-            + "characters_completed_feat/?c:limit=10000&character_id=";
-
-    private static final String serviceCountUrl = serviceHost + "/s:BluesStats/count/dcuo:v1/";
-    private static final String characterFeatCountUrl = serviceCountUrl + "characters_completed_feat?feat_id=";
-
-    private static final String imageUrl = serviceHost + "/files/dcuo/images/character/paperdoll/";
-    private static final String imageUrl2 = ".png?fallback=dcuo.paperdoll.";
     private static final String imageDir = "images/";
-    private static final CensusParser parser = new CensusParser();
+
+    private static final DCUOCensusClient censusClient = new DCUOCensusJsonClient();
 
     private static final String delim = "\t";
 
-    private Map<Long, Alignment> alignments = null;
-    private Map<Long, ItemCategory> itemCategories = null;
     private Map<Long, Item> items = null;
-    private final Set<Long> iconIds = new TreeSet<Long>();
 
     public static void main(String[] args) {
         DCUOCensus app = new DCUOCensus();
@@ -184,27 +146,26 @@ public class DCUOCensus {
                             character.getUnlockableMovementFeats());
 
                     /*
-                    Map<MovementMode, Collection<Feat>> movementFeats = new TreeMap<MovementMode, Collection<Feat>>();
-                    for (MovementMode move : MovementMode.values()) {
-                        Set<Feat> sortedMovementFeats = sortFeatIdSet(feats,
-                                character.getUnlockableMovementFeatSet(move));
-                        if (sortedMovementFeats != null && !sortedMovementFeats.isEmpty()) {
-                            movementFeats.put(move, sortedMovementFeats);
-                        }
-                    }
-*/
+                     * Map<MovementMode, Collection<Feat>> movementFeats = new
+                     * TreeMap<MovementMode, Collection<Feat>>(); for
+                     * (MovementMode move : MovementMode.values()) { Set<Feat>
+                     * sortedMovementFeats = sortFeatIdSet(feats,
+                     * character.getUnlockableMovementFeatSet(move)); if
+                     * (sortedMovementFeats != null &&
+                     * !sortedMovementFeats.isEmpty()) { movementFeats.put(move,
+                     * sortedMovementFeats); } }
+                     */
                     Map<Role, Collection<Feat>> roleFeats = getFeatEnumMap(Role.values(), feats,
                             character.getUnlockableRoleFeats());
 
                     /*
-                    Map<Role, Collection<Feat>> roleFeats = new TreeMap<Role, Collection<Feat>>();
-                    for (Role role : Role.values()) {
-                        Set<Feat> sortedRoleFeats = sortFeatIdSet(feats, character.getUnlockableRoleFeatSet(role));
-                        if (sortedRoleFeats != null && !sortedRoleFeats.isEmpty()) {
-                            roleFeats.put(role, sortedRoleFeats);
-                        }
-                    }
-*/
+                     * Map<Role, Collection<Feat>> roleFeats = new TreeMap<Role,
+                     * Collection<Feat>>(); for (Role role : Role.values()) {
+                     * Set<Feat> sortedRoleFeats = sortFeatIdSet(feats,
+                     * character.getUnlockableRoleFeatSet(role)); if
+                     * (sortedRoleFeats != null && !sortedRoleFeats.isEmpty()) {
+                     * roleFeats.put(role, sortedRoleFeats); } }
+                     */
                     xlsxWriter.writeUnlockableFeats(character, sortedFeats, roleFeats, movementFeats);
                 }
             }
@@ -246,8 +207,7 @@ public class DCUOCensus {
             Map<Long, Feat> featsNeeded, Set<Long> featsCompleted) {
         for (Character character : sortedCharacters) {
             try {
-                Set<Long> featIds = parser.parseCharacterFeats(new URL(characterFeatsUrl + character.getId()),
-                        character.getName());
+                Set<Long> featIds = censusClient.getCharacterFeats(character);
                 character.setCompletedFeats(featIds);
 
                 for (Long featId : featIds) {
@@ -276,28 +236,22 @@ public class DCUOCensus {
         return featsNeeded;
     }
 
-    private Map<Long, Feat> processFeats() throws IOException {
+    private Map<Long, Feat> processFeats() throws IOException, DCUOException {
         Map<Long, Feat> feats = loadFeats();
 
         if (feats == null) {
-            Map<Long, FeatCategory> featCategories = parser.parseFeatCategories(new URL(featCategoriesUrl));
-
-            Map<Long, Reward> rewards = parser.parseRewards(new URL(rewardUrl));
-
-            feats = parser.parseFeats(new URL(featsUrl), featCategories, rewards, alignments);
+            feats = censusClient.getFeats();
 
             addMissingFeats(feats);
         }
         return feats;
     }
 
-    private void processItems() throws IOException {
-        itemCategories = parser.parseItemCategories(new URL(itemCategoriesUrl));
-
+    private void processItems() throws DCUOException {
         items = loadItems();
 
         if (items == null) {
-            items = parser.parseItems(new URL(itemsUrl), itemCategories);
+            items = censusClient.getItems();
         }
     }
 
@@ -345,16 +299,13 @@ public class DCUOCensus {
         return map;
     }
 
-    private Set<Character> processCharacters(XLSXWriter xlsxWriter) throws UnsupportedEncodingException, IOException {
+    private Set<Character> processCharacters(XLSXWriter xlsxWriter)
+            throws UnsupportedEncodingException, IOException, DCUOException {
         Map<Long, Character> characters = new TreeMap<Long, Character>();
-
-        Map<Long, Personality> personalities = parser.parsePersonalities(new URL(personalityUrl));
 
         Set<String> characterNames = readCharacterNames();
         for (String characterName : characterNames) {
-            String encodedName = URLEncoder.encode(characterName, "UTF-8");
-            Character character = parser.parseCharacters(new URL(characterUrl + encodedName + characterQuery),
-                    personalities, alignments);
+            Character character = censusClient.getCharacter(characterName);
             characters.put(character.getId(), character);
         }
 
@@ -370,7 +321,7 @@ public class DCUOCensus {
                     + character.getPersonality().getNameEn() + delim + character.getGender() + delim
                     + character.getOrigin());
 
-            character.setImageId(saveImage(character.getId(), character.getGender()));
+            censusClient.saveImage(character);
             // showImage(character.getId());
 
             getCharacterItems(character);
@@ -382,8 +333,8 @@ public class DCUOCensus {
         return sortedCharacters;
     }
 
-    private void getCharacterItems(Character character) throws IOException {
-        List<CharactersItem> charItems = parser.parseCharacterItems(new URL(characterItemsUrl + character.getId()));
+    private void getCharacterItems(Character character) throws IOException, DCUOException {
+        List<CharactersItem> charItems = censusClient.getCharacterItems(character);
         character.setCharacterItems(charItems);
 
         logger.debug(character.getName() + " has " + charItems.size() + " items.");
@@ -393,28 +344,19 @@ public class DCUOCensus {
                 item = items.get(charItem.getItemId());
             }
             if (item == null) {
-                item = getItem(charItem.getItemId());
+                item = censusClient.getItem(charItem.getItemId());
                 if (item != null && items != null) {
                     items.put(item.getId(), item);
                 }
             }
             if (item != null) {
-                getIcon(item.getIconId(), item.getImagePath(), item.getCategory(), item.getSubCategory());
+                censusClient.saveIcon(item);
                 logger.debug(EquipmentSlot.getById(charItem.getEquipmentSlotId()) + delim + item.getNameEn() + delim
                         + item.getItemLevel());
             } else {
                 logger.debug(EquipmentSlot.getById(charItem.getEquipmentSlotId()) + delim + charItem.getItemId());
             }
         }
-    }
-
-    private Item getItem(long id) throws IOException {
-        Item item = null;
-        Map<Long, Item> items = parser.parseItems(new URL(itemByIdUrl + id), itemCategories);
-        if (items != null && !items.isEmpty()) {
-            item = items.get(id);
-        }
-        return item;
     }
 
     private void getCompletedCounts(Map<Long, Feat> feats) {
@@ -426,7 +368,7 @@ public class DCUOCensus {
             for (Feat feat : feats.values()) {
                 feat.setCompleted(getFeatCompletedCount(feat));
 
-                getIcon(feat.getIconId(), feat.getImagePath(), "Feat", "Icon");
+                censusClient.saveIcon(feat);
             }
 
             saveFeats(feats);
@@ -434,15 +376,6 @@ public class DCUOCensus {
             logger.info("Feat completed counts already loaded.");
         }
         logger.info("Finished getting completed feat counts.");
-    }
-
-    private void getIcon(long iconId, String path, String category, String subCategory) {
-        if (iconId > 0) {
-            if (!iconIds.contains(iconId)) {
-                iconIds.add(iconId);
-            }
-            saveIcon(iconId, path, category, subCategory);
-        }
     }
 
     private static void saveFeats(Map<Long, Feat> feats) {
@@ -484,11 +417,9 @@ public class DCUOCensus {
     private static long getFeatCompletedCount(Feat feat) {
         long count = 0;
         try {
-            // String out = HtmlReader.getHTML(characterFeatCountUrl +
-            // feat.getId(), feat.getNameEn());
-            count = parser.parseCount(new URL(characterFeatCountUrl + feat.getId()), feat.getNameEn());
-        } catch (Exception e) {
-            logger.error("Failed due to exception getting completed count for " + feat.getNameEn(), e);
+            count = censusClient.getFeatCompletedCount(feat);
+        } catch (DCUOException e) {
+            logger.error(e.getMessage(), e);
         }
         return count;
     }
@@ -607,8 +538,10 @@ public class DCUOCensus {
         addFeat(feats, 3141835, "Episodes", "Phantom Zone & Science Spire", 150, 210, "Insecurity Devices",
                 "During the Science Spire Operation,", 25, IconId.SOLOS);
 
-        addFeat(feats, 3150281, "Seasonal", "St. Patrick's Day", 100, 20, "Luck o' the 5th Dimension", "Collect any 8 Base Items from the 2016 St. Patrick's Day event", 10, IconId.ST_PATRICKS);
-        addFeat(feats, 3302238, "Seasonal", "St. Patrick's Day", 100, 20, "Shamrock & Roll", "Use 20 Clover Bombs", 10, IconId.ST_PATRICKS);
+        addFeat(feats, 3150281, "Seasonal", "St. Patrick's Day", 100, 20, "Luck o' the 5th Dimension",
+                "Collect any 8 Base Items from the 2016 St. Patrick's Day event", 10, IconId.ST_PATRICKS);
+        addFeat(feats, 3302238, "Seasonal", "St. Patrick's Day", 100, 20, "Shamrock & Roll", "Use 20 Clover Bombs", 10,
+                IconId.ST_PATRICKS);
 
     }
 
@@ -720,80 +653,6 @@ public class DCUOCensus {
         feat.setImagePath("/files/dcuo/images/static/items/" + feat.getIconId() + ".png");
         if (!feats.containsKey(feat.getId())) {
             feats.put(feat.getId(), feat);
-        }
-    }
-
-    public static void showImage(long charId) {
-        String fullImageUrl = imageUrl + charId + imageUrl2 + "male";
-        try {
-            final BufferedImage image = ImageIO.read(new URL(fullImageUrl));
-
-            if (image != null) {
-                JFrame f = new JFrame() {
-                    private static final long serialVersionUID = 1L;
-
-                    public void paint(Graphics g) {
-                        Insets insets = getInsets();
-                        g.drawImage(image, insets.left, insets.top, null);
-                    }
-                };
-                f.setVisible(true);
-                Insets insets = f.getInsets();
-                f.setSize(image.getWidth() + insets.left + insets.right,
-                        image.getHeight() + insets.top + insets.bottom);
-            }
-        } catch (Exception e) {
-            logger.error("Exception: " + e, e);
-        }
-    }
-
-    public static long saveImage(long charId, Gender gender) {
-        return saveImage(charId, gender, true);
-    }
-
-    private static long saveImage(long charId, Gender gender, boolean useOldId) {
-        String fullImageUrl = imageUrl + charId + imageUrl2 + "male";
-        long retval = charId;
-        try {
-            final BufferedImage image = ImageIO.read(new URL(fullImageUrl));
-
-            if (image != null) {
-                File dir = new File(imageDir);
-                if (!dir.exists()) {
-                    dir.mkdirs();
-                }
-                File out = new File(imageDir + charId + ".png");
-                ImageIO.write(image, "png", out);
-            } else if (useOldId) {
-                long oldId = parser.parseCharIdMapping(new URL(characterIdMapUrl + charId));
-                if (oldId > 0) {
-                    saveImage(oldId, gender, false);
-                    retval = oldId;
-                }
-            }
-        } catch (Exception e) {
-            logger.error("Exception: " + e, e);
-        }
-        return retval;
-    }
-
-    public static void saveIcon(Long id, String path, String category, String subCategory) {
-        File out = new File(imageDir + category + "/" + subCategory + id + ".png");
-        String fullImageUrl = serviceHost + path;
-        try {
-            if (!out.exists()) {
-                final BufferedImage image = ImageIO.read(new URL(fullImageUrl));
-
-                if (image != null) {
-                    File dir = new File(imageDir + category);
-                    if (!dir.exists()) {
-                        dir.mkdirs();
-                    }
-                    ImageIO.write(image, "png", out);
-                }
-            }
-        } catch (Exception e) {
-            logger.error("Exception: " + e, e);
         }
     }
 
