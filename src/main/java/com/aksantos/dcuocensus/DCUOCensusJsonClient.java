@@ -389,6 +389,7 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
         Map<Long, Item> retval = null;
         try {
             retval = parseItems(new URL(itemsUrl));
+            addMissingItems(retval);
         } catch (MalformedURLException e) {
             throw new DCUOException(e);
         }
@@ -807,4 +808,30 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
         }
     }
 
+    private void addMissingItems(Map<Long, Item> items) {
+        long id = 3099253; 
+        if (!items.containsKey(id)) {
+            Item item = new Item();
+            item.setId(id);
+            item.setNameEn("Utility Belt of Omnipotence");
+            item.setItemLevel(136);
+            item.setRequiredCR(30);
+            item.setQuality(6);
+            item.setIconId(103192);
+            item.setCategoryId(0);
+            item.setCategory("Armor");
+            item.setSubCategory("Utility Belts");
+            item.setSaleValue(2294);
+            item.setMitigation(505);
+            item.setHealth(1232);
+            item.setPower(474);
+            item.setFinisherAttack(188);
+            item.setBasicAttack(480);
+            item.setHeal(501);
+            item.setPowerHeal(324);
+            item.setDominance(91);
+            item.setNoTrade(true);
+            items.put(item.getId(), item);
+        }
+    }
 }
