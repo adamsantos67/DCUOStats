@@ -8,6 +8,7 @@ import com.aksantos.dcuocensus.models.Character;
 import com.aksantos.dcuocensus.models.CharactersItem;
 import com.aksantos.dcuocensus.models.Feat;
 import com.aksantos.dcuocensus.models.Item;
+import com.aksantos.dcuocensus.models.League;
 
 public interface DCUOCensusClient {
     Character getCharacter(String characterName) throws DCUOException;
@@ -31,4 +32,8 @@ public interface DCUOCensusClient {
     void saveIcon(Item item);
 
     void saveIcon(Feat feat);
+
+    League getLeague(Character character) throws DCUOException;
+
+    League getLeagueById(long id) throws DCUOException;
 }

@@ -35,6 +35,7 @@ import com.aksantos.dcuocensus.models.Character;
 import com.aksantos.dcuocensus.models.CharactersItem;
 import com.aksantos.dcuocensus.models.Feat;
 import com.aksantos.dcuocensus.models.Item;
+import com.aksantos.dcuocensus.models.League;
 import com.aksantos.dcuocensus.models.Personality;
 import com.aksantos.dcuocensus.models.enums.Alignment;
 import com.aksantos.dcuocensus.models.enums.EquipmentSlot;
@@ -524,7 +525,7 @@ public class XLSXWriter {
         r = sheet.createRow(rownum++);
 
         int cellnum = 0;
-        String headers[] = { "Img.", "Name", "Level", "CR", "SP", "PvP CR", "Power", "Role", "Move", "Faction",
+        String headers[] = { "Img.", "Name", "League", "Level", "CR", "SP", "PvP CR", "Power", "Role", "Move", "Faction",
                 "Personality", "Gender", "Origin", "Mentor", "Weapon", "Health", "Power", "Defense", "Tough", "Might",
                 "Prec", "Rest", "Vit", "Dom", "Max Feats", "Id" };
 
@@ -556,6 +557,13 @@ public class XLSXWriter {
             c = (XSSFCell) r.createCell(cellnum++);
             c.setCellStyle(cs1);
             c.setCellValue(character.getName());
+
+            c = (XSSFCell) r.createCell(cellnum++);
+            c.setCellStyle(cellStyle);
+            League league = character.getLeague();
+            if (league != null) {
+                c.setCellValue(league.getName());
+            }
 
             c = (XSSFCell) r.createCell(cellnum++);
             c.setCellStyle(cellStyle);

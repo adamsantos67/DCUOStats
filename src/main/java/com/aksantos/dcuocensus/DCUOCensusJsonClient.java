@@ -39,6 +39,10 @@ import com.aksantos.dcuocensus.models.Item;
 import com.aksantos.dcuocensus.models.ItemCategories;
 import com.aksantos.dcuocensus.models.ItemCategory;
 import com.aksantos.dcuocensus.models.Items;
+import com.aksantos.dcuocensus.models.League;
+import com.aksantos.dcuocensus.models.LeagueList;
+import com.aksantos.dcuocensus.models.LeagueRoster;
+import com.aksantos.dcuocensus.models.LeagueRosterList;
 import com.aksantos.dcuocensus.models.Name;
 import com.aksantos.dcuocensus.models.Personalities;
 import com.aksantos.dcuocensus.models.Personality;
@@ -79,6 +83,9 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
     private static final String characterFeatsUrl = serviceUrl
             + "characters_completed_feat/?c:limit=10000&character_id=";
 
+    private static final String leagueRosterByCharIdUrl = serviceUrl + "guild_roster?character_id=";
+    private static final String leagueByIdUrl = serviceUrl + "guild?guild_id=";
+
     private static final String serviceCountUrl = serviceHost + "/s:BluesStats/count/dcuo:v1/";
     private static final String characterFeatCountUrl = serviceCountUrl + "characters_completed_feat?feat_id=";
 
@@ -100,6 +107,7 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
     private Map<Long, Personality> personalities = null;
     private Map<Long, FeatCategory> featCategories = null;
     private Map<Long, Reward> rewards = null;
+    private Map<Long, League> leagues = null;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -294,6 +302,7 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
                     }
 
                     character.setRole(character.getPower().getRole());
+                    character.setLeague(getLeague(character));
                 }
             } catch (JsonParseException e) {
                 logger.error("Exception: " + e, e);
@@ -445,6 +454,50 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
             }
         }
         return items;
+    }
+
+    public League getLeague(Character character) throws DCUOException {
+        League retval = null;
+        try {
+            Map<Long, LeagueRoster> leagueRosters = parseTypes(new URL(leagueRosterByCharIdUrl + character.getId()),
+                    LeagueRosterList.class);
+            if (leagueRosters != null && !leagueRosters.isEmpty()) {
+                long leagueId = 0;
+                for (LeagueRoster roster : leagueRosters.values()) {
+                    leagueId = roster.getId();
+                    break;
+                }
+                if (leagues == null) {
+                    leagues = new TreeMap<Long, League>();
+                } else {
+                    retval = leagues.get(leagueId);
+                }
+                if (retval == null) {
+                    retval = getLeagueById(leagueId);
+                    leagues.put(retval.getId(), retval);
+                }
+            }
+        } catch (MalformedURLException e) {
+            throw new DCUOException(e);
+        }
+        return retval;
+    }
+    
+    public League getLeagueById(long id) throws DCUOException {
+        League retval = null;
+        Map<Long, League> leagueList = null;
+        try {
+            leagueList = parseTypes(new URL(leagueByIdUrl + id), LeagueList.class);
+            if (leagueList != null && !leagueList.isEmpty()) {
+                for (League league : leagueList.values()) {
+                    retval = league;
+                    break;
+                }
+            }
+        } catch (MalformedURLException e) {
+            throw new DCUOException(e);
+        }
+        return retval;
     }
 
     private Map<Long, Reward> getRewards() throws DCUOException {
@@ -809,7 +862,7 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
     }
 
     private void addMissingItems(Map<Long, Item> items) {
-        long id = 3099253; 
+        long id = 3099253;
         if (!items.containsKey(id)) {
             Item item = new Item();
             item.setId(id);

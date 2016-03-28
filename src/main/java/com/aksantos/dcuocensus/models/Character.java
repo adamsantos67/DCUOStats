@@ -19,6 +19,7 @@ public class Character extends Type {
     private static final long serialVersionUID = 3782174885643794877L;
 
     private String name;
+    private League league;
     private int level;
     private int combatRating;
     private int skillPoints;
@@ -495,6 +496,14 @@ public class Character extends Type {
     public void addUnlockabeMovementFeat(MovementMode movement, Long featId) {
         Set<Long> movementFeats = getUnlockableMovementFeatSet(movement);
         movementFeats.add(featId);
+    }
+
+    public League getLeague() {
+        return league;
+    }
+
+    public void setLeague(League league) {
+        this.league = league;
     }
 
 }
