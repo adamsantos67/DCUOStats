@@ -23,31 +23,31 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.aksantos.dcuocensus.models.CharCompletedFeat;
-import com.aksantos.dcuocensus.models.CharCompletedFeats;
+import com.aksantos.dcuocensus.models.CharCompletedFeatList;
 import com.aksantos.dcuocensus.models.CharIdMapping;
-import com.aksantos.dcuocensus.models.CharIdMappings;
+import com.aksantos.dcuocensus.models.CharIdMappingList;
 import com.aksantos.dcuocensus.models.Character;
-import com.aksantos.dcuocensus.models.Characters;
+import com.aksantos.dcuocensus.models.CharacterList;
 import com.aksantos.dcuocensus.models.CharactersItem;
-import com.aksantos.dcuocensus.models.CharactersItems;
+import com.aksantos.dcuocensus.models.CharactersItemList;
 import com.aksantos.dcuocensus.models.Count;
 import com.aksantos.dcuocensus.models.Feat;
-import com.aksantos.dcuocensus.models.FeatCategories;
+import com.aksantos.dcuocensus.models.FeatCategoryList;
 import com.aksantos.dcuocensus.models.FeatCategory;
-import com.aksantos.dcuocensus.models.Feats;
+import com.aksantos.dcuocensus.models.FeatList;
 import com.aksantos.dcuocensus.models.Item;
-import com.aksantos.dcuocensus.models.ItemCategories;
+import com.aksantos.dcuocensus.models.ItemCategoryList;
 import com.aksantos.dcuocensus.models.ItemCategory;
-import com.aksantos.dcuocensus.models.Items;
+import com.aksantos.dcuocensus.models.ItemList;
 import com.aksantos.dcuocensus.models.League;
 import com.aksantos.dcuocensus.models.LeagueList;
 import com.aksantos.dcuocensus.models.LeagueRoster;
 import com.aksantos.dcuocensus.models.LeagueRosterList;
 import com.aksantos.dcuocensus.models.Name;
-import com.aksantos.dcuocensus.models.Personalities;
+import com.aksantos.dcuocensus.models.PersonalityList;
 import com.aksantos.dcuocensus.models.Personality;
 import com.aksantos.dcuocensus.models.Reward;
-import com.aksantos.dcuocensus.models.Rewards;
+import com.aksantos.dcuocensus.models.RewardList;
 import com.aksantos.dcuocensus.models.Type;
 import com.aksantos.dcuocensus.models.TypeHolder;
 import com.aksantos.dcuocensus.models.enums.Alignment;
@@ -125,7 +125,7 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
         Set<Long> feats = new TreeSet<Long>();
         if (jsonUrl != null) {
             try {
-                CharCompletedFeats mappings = mapper.readValue(jsonUrl, CharCompletedFeats.class);
+                CharCompletedFeatList mappings = mapper.readValue(jsonUrl, CharCompletedFeatList.class);
                 for (CharCompletedFeat compFeat : mappings.getObjectList()) {
                     feats.add(compFeat.getFeatId());
                 }
@@ -184,7 +184,7 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
         long oldId = 0;
         if (jsonUrl != null) {
             try {
-                CharIdMappings mappings = mapper.readValue(jsonUrl, CharIdMappings.class);
+                CharIdMappingList mappings = mapper.readValue(jsonUrl, CharIdMappingList.class);
                 List<CharIdMapping> mappingList = mappings.getObjectList();
                 if (mappingList != null && !mappingList.isEmpty()) {
                     oldId = mappingList.get(0).getOldId();
@@ -215,7 +215,7 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
 
         if (charUrl != null) {
             try {
-                CharactersItems charactersItems = mapper.readValue(charUrl, CharactersItems.class);
+                CharactersItemList charactersItems = mapper.readValue(charUrl, CharactersItemList.class);
                 List<CharactersItem> charList = charactersItems.getObjectList();
                 charItems.addAll(charList);
             } catch (JsonParseException e) {
@@ -252,7 +252,7 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
                     personalities = getPersonalities();
                 }
 
-                Characters characters = mapper.readValue(charUrl, Characters.class);
+                CharacterList characters = mapper.readValue(charUrl, CharacterList.class);
                 List<Character> charList = characters.getObjectList();
                 if (charList.size() > 0) {
                     character = charList.get(0);
@@ -332,7 +332,7 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
 
         if (featUrl != null) {
             try {
-                Feats featList = mapper.readValue(featUrl, Feats.class);
+                FeatList featList = mapper.readValue(featUrl, FeatList.class);
 
                 if (featCategories == null) {
                     featCategories = getFeatCategories();
@@ -427,7 +427,7 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
                     itemCategories = getItemCategories();
                 }
 
-                Items itemList = mapper.readValue(itemUrl, Items.class);
+                ItemList itemList = mapper.readValue(itemUrl, ItemList.class);
 
                 for (Item item : itemList.getItem_list()) {
                     ItemCategory category = itemCategories.get(item.getCategoryId());
@@ -503,7 +503,7 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
     private Map<Long, Reward> getRewards() throws DCUOException {
         Map<Long, Reward> retval = null;
         try {
-            retval = parseTypes(new URL(rewardUrl), Rewards.class);
+            retval = parseTypes(new URL(rewardUrl), RewardList.class);
         } catch (MalformedURLException e) {
             throw new DCUOException(e);
         }
@@ -513,7 +513,7 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
     private Map<Long, FeatCategory> getFeatCategories() throws DCUOException {
         Map<Long, FeatCategory> retval = null;
         try {
-            retval = parseTypes(new URL(featCategoriesUrl), FeatCategories.class);
+            retval = parseTypes(new URL(featCategoriesUrl), FeatCategoryList.class);
         } catch (MalformedURLException e) {
             throw new DCUOException(e);
         }
@@ -523,7 +523,7 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
     private Map<Long, ItemCategory> getItemCategories() throws DCUOException {
         Map<Long, ItemCategory> retval = null;
         try {
-            retval = parseTypes(new URL(itemCategoriesUrl), ItemCategories.class);
+            retval = parseTypes(new URL(itemCategoriesUrl), ItemCategoryList.class);
         } catch (MalformedURLException e) {
             throw new DCUOException(e);
         }
@@ -533,7 +533,7 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
     private Map<Long, Personality> getPersonalities() throws DCUOException {
         Map<Long, Personality> retval = null;
         try {
-            retval = parseTypes(new URL(personalityUrl), Personalities.class);
+            retval = parseTypes(new URL(personalityUrl), PersonalityList.class);
         } catch (MalformedURLException e) {
             throw new DCUOException(e);
         }

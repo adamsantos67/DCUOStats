@@ -4,9 +4,9 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Feats extends TypeHolder<Feat> {
-    @JsonProperty("feat_list")
-    public List<Feat> getObjectList() {
+public class PersonalityList extends TypeHolder<Personality> {
+    @JsonProperty("personality_list")
+    public List<Personality> getObjectList() {
         return super.getObjectList();
     }
 }
