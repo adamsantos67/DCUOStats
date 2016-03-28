@@ -1,4 +1,4 @@
-package com.aksantos.dcuocensus;
+package com.aksantos.dcuocensus.poi;
 
 import java.util.ArrayList;
 import java.util.List;

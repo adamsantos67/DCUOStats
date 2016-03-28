@@ -1,4 +1,4 @@
-package com.aksantos.dcuocensus;
+package com.aksantos.dcuocensus.poi;
 
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;

@@ -17,6 +17,8 @@ import org.apache.poi.xssf.usermodel.extensions.XSSFCellFill;
 import org.junit.Test;
 import org.openxmlformats.schemas.spreadsheetml.x2006.main.STGradientType;
 
+import com.aksantos.dcuocensus.poi.GradientFill;
+
 public class GradientFillTest {
 
     @Test

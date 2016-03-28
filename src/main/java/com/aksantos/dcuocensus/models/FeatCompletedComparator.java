@@ -1,8 +1,6 @@
-package com.aksantos.dcuocensus;
+package com.aksantos.dcuocensus.models;
 
 import java.util.Comparator;
-
-import com.aksantos.dcuocensus.models.Feat;
 
 public class FeatCompletedComparator implements Comparator<Feat> {
     private static final FeatCompletedComparator INSTANCE = new FeatCompletedComparator();

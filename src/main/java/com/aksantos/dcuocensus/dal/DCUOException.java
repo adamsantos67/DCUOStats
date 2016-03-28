@@ -1,4 +1,4 @@
-package com.aksantos.dcuocensus;
+package com.aksantos.dcuocensus.dal;
 
 public class DCUOException extends Exception {
     private static final long serialVersionUID = 5452247171173016661L;

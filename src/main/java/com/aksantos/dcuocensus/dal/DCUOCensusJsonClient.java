@@ -1,4 +1,4 @@
-package com.aksantos.dcuocensus;
+package com.aksantos.dcuocensus.dal;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
