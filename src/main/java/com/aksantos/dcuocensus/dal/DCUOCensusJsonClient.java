@@ -75,6 +75,7 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
     private static final String itemCategoriesUrl = serviceUrl + "item_category?c:limit=1000";
     private static final String personalityUrl = serviceUrl + "personality?c:limit=1000";
     private static final String characterUrl = serviceUrl + "character?world_id=2&name=";
+    private static final String characterByIdUrl = serviceUrl + "character?character_id=";
     private static final String characterIdMapUrl = serviceUrl + "char_id_mapping?new_character_id=";
     private static final String characterItemsUrl = serviceUrl + "characters_item?c:limit=1000&character_id=";
 
@@ -84,6 +85,7 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
             + "characters_completed_feat/?c:limit=10000&character_id=";
 
     private static final String leagueRosterByCharIdUrl = serviceUrl + "guild_roster?character_id=";
+    private static final String leagueRosterByLeagueIdUrl = serviceUrl + "guild_roster?guild_id=";
     private static final String leagueByIdUrl = serviceUrl + "guild?guild_id=";
 
     private static final String serviceCountUrl = serviceHost + "/s:BluesStats/count/dcuo:v1/";
@@ -243,6 +245,18 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
         return retval;
     }
 
+    @Override
+    public Character getCharacterById(long id) throws DCUOException {
+        Character retval = null;
+        try {
+            retval = parseCharacters(new URL(characterByIdUrl + id + characterQuery));
+        } catch (MalformedURLException e) {
+            throw new DCUOException(e);
+        }
+        return retval;
+    }
+
+    
     private Character parseCharacters(URL charUrl) throws DCUOException {
         Character character = new Character();
 
@@ -493,6 +507,21 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
                     retval = league;
                     break;
                 }
+            }
+        } catch (MalformedURLException e) {
+            throw new DCUOException(e);
+        }
+        return retval;
+    }
+
+    @Override
+    public List<LeagueRoster> getLeagueRoster(long id) throws DCUOException {
+        List<LeagueRoster> retval = new ArrayList<LeagueRoster>();
+        try {
+            Map<Long, LeagueRoster> leagueRosters = parseTypes(new URL(leagueRosterByLeagueIdUrl + id),
+                    LeagueRosterList.class);
+            if (leagueRosters != null && !leagueRosters.isEmpty()) {
+                retval.addAll(leagueRosters.values());
             }
         } catch (MalformedURLException e) {
             throw new DCUOException(e);
@@ -887,4 +916,5 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
             items.put(item.getId(), item);
         }
     }
+
 }

@@ -9,9 +9,12 @@ import com.aksantos.dcuocensus.models.CharactersItem;
 import com.aksantos.dcuocensus.models.Feat;
 import com.aksantos.dcuocensus.models.Item;
 import com.aksantos.dcuocensus.models.League;
+import com.aksantos.dcuocensus.models.LeagueRoster;
 
 public interface DCUOCensusClient {
     Character getCharacter(String characterName) throws DCUOException;
+
+    Character getCharacterById(long id) throws DCUOException;
 
     Set<Long> getCharacterFeats(Character character) throws DCUOException;
 
@@ -27,13 +30,16 @@ public interface DCUOCensusClient {
 
     Item getItem(long itemId) throws DCUOException;
 
+    League getLeague(Character character) throws DCUOException;
+
+    League getLeagueById(long id) throws DCUOException;
+
+    List<LeagueRoster> getLeagueRoster(long id) throws DCUOException;
+
     void saveImage(Character character);
 
     void saveIcon(Item item);
 
     void saveIcon(Feat feat);
 
-    League getLeague(Character character) throws DCUOException;
-
-    League getLeagueById(long id) throws DCUOException;
 }

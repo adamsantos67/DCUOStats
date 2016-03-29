@@ -18,17 +18,11 @@ limitations under the License.
 
 package com.aksantos.dcuocensus.poi;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Locale;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.ClientAnchor;
 import org.apache.poi.ss.usermodel.Drawing;
 import org.apache.poi.ss.usermodel.Row;
@@ -202,7 +196,6 @@ import org.apache.poi.util.IOUtils;
 *               continue to rectify this issue.
 */
 public class AddDimensionedImage {
-    private static final Logger logger = LogManager.getLogger(AddDimensionedImage.class);
 
  // Four constants that determine how - and indeed whether - the rows
  // and columns an image may overlie should be expanded to accomodate that
@@ -794,78 +787,6 @@ public class AddDimensionedImage {
                      toRow, inset);
      }
      return(clientAnchorDetail);
- }
-
- /**
-  * The main entry point to the program. It contains code that demonstrates
-  * one way to use the program.
-  *
-  * Note, the code is not restricted to use on new workbooks only. If an
-  * image is to be inserted into an existing workbook. just open that
-  * workbook, gat a reference to a sheet and pass that;
-  *
-  *      AddDimensionedImage addImage = new AddDimensionedImage();
-  *
-  *      File file = new File("....... Existing Workbook .......");
-  *      FileInputStream fis = new FileInputStream(file);
-  *      Workbook workbook = new HSSFWorkbook(fis);
-  *      HSSFSheet sheet = workbook.getSheetAt(0);
-  *      addImage.addImageToSheet("C3", sheet, "image.jpg", 30, 20,
-  *          AddDimensionedImage.EXPAND.ROW);
-  *
-  * @param args the command line arguments
-  */
- public static void main(String[] args) {
-     String imageFile = null;
-     String outputFile = null;
-     FileOutputStream fos = null;
-     Workbook workbook = null;
-     Sheet sheet = null;
-     try {
-         if(args.length < 2){
-             System.err.println("Usage: AddDimensionedImage imageFile outputFile");
-             return;
-         }
-         workbook = new HSSFWorkbook();   // OR XSSFWorkbook
-         sheet = workbook.createSheet("Picture Test");
-             imageFile = args[0];
-         outputFile = args[1];
-         new AddDimensionedImage().addImageToSheet("B5", sheet, sheet.createDrawingPatriarch(),
-             new File(imageFile).toURI().toURL(), 100, 40,
-             AddDimensionedImage.EXPAND_ROW_AND_COLUMN);
-         fos = new FileOutputStream(outputFile);
-         workbook.write(fos);
-     }
-     catch(FileNotFoundException fnfEx) {
-         logger.error("Caught an: " + fnfEx.getClass().getName());
-         logger.error("Message: " + fnfEx.getMessage());
-         logger.error("Stacktrace follows...........", fnfEx);
-     }
-     catch(IOException ioEx) {
-         logger.error("Caught an: " + ioEx.getClass().getName());
-         logger.error("Message: " + ioEx.getMessage());
-         logger.error("Stacktrace follows...........", ioEx);
-     }
-     finally {
-         if(fos != null) {
-             try {
-                 fos.close();
-                 fos = null;
-             }
-             catch(IOException ioEx) {
-                 // I G N O R E
-             }
-         }
-         
-         if(workbook != null) {
-             try {
-                workbook.close();
-                workbook = null;
-            } catch (IOException e) {
-                // I G N O R E
-            }
-         }
-     }
  }
 
  /**
