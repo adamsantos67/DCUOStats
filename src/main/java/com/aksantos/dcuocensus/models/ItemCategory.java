@@ -46,7 +46,12 @@ public class ItemCategory extends Type {
         return name;
     }
 
+    public String getNameEn() {
+        return name == null ? "" : name.getEn();
+    }
+
     public void setName(Name name) {
         this.name = name;
     }
+
 }

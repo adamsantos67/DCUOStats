@@ -17,11 +17,14 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.aksantos.dcuocensus.models.AugSocketColor;
+import com.aksantos.dcuocensus.models.AugSocketColorList;
 import com.aksantos.dcuocensus.models.CharCompletedFeat;
 import com.aksantos.dcuocensus.models.CharCompletedFeatList;
 import com.aksantos.dcuocensus.models.CharIdMapping;
@@ -32,20 +35,20 @@ import com.aksantos.dcuocensus.models.CharactersItem;
 import com.aksantos.dcuocensus.models.CharactersItemList;
 import com.aksantos.dcuocensus.models.Count;
 import com.aksantos.dcuocensus.models.Feat;
-import com.aksantos.dcuocensus.models.FeatCategoryList;
 import com.aksantos.dcuocensus.models.FeatCategory;
+import com.aksantos.dcuocensus.models.FeatCategoryList;
 import com.aksantos.dcuocensus.models.FeatList;
 import com.aksantos.dcuocensus.models.Item;
-import com.aksantos.dcuocensus.models.ItemCategoryList;
 import com.aksantos.dcuocensus.models.ItemCategory;
+import com.aksantos.dcuocensus.models.ItemCategoryList;
 import com.aksantos.dcuocensus.models.ItemList;
 import com.aksantos.dcuocensus.models.League;
 import com.aksantos.dcuocensus.models.LeagueList;
 import com.aksantos.dcuocensus.models.LeagueRoster;
 import com.aksantos.dcuocensus.models.LeagueRosterList;
 import com.aksantos.dcuocensus.models.Name;
-import com.aksantos.dcuocensus.models.PersonalityList;
 import com.aksantos.dcuocensus.models.Personality;
+import com.aksantos.dcuocensus.models.PersonalityList;
 import com.aksantos.dcuocensus.models.Reward;
 import com.aksantos.dcuocensus.models.RewardList;
 import com.aksantos.dcuocensus.models.Type;
@@ -69,11 +72,12 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
     private static final String serviceUrl = serviceHost + "/s:BluesStats/get/dcuo:v1/";
     private static final String rewardUrl = serviceUrl + "feat_reward?c:limit=100";
     private static final String featsUrl = serviceUrl + "feat?c:limit=10000";
-    private static final String itemsUrl = serviceUrl + "item?c:limit=100";
+    private static final String itemsUrl = serviceUrl + "item?c:limit=10000&item_category_id=";
     private static final String itemByIdUrl = serviceUrl + "item?item_id=";
     private static final String featCategoriesUrl = serviceUrl + "feat_category?c:limit=1000";
     private static final String itemCategoriesUrl = serviceUrl + "item_category?c:limit=1000";
     private static final String personalityUrl = serviceUrl + "personality?c:limit=1000";
+    private static final String socketUrl = serviceUrl + "aug_socket_color?c:limit=1000";
     private static final String characterUrl = serviceUrl + "character?world_id=2&name=";
     private static final String characterByIdUrl = serviceUrl + "character?character_id=";
     private static final String characterIdMapUrl = serviceUrl + "char_id_mapping?new_character_id=";
@@ -110,6 +114,7 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
     private Map<Long, FeatCategory> featCategories = null;
     private Map<Long, Reward> rewards = null;
     private Map<Long, League> leagues = null;
+    private Map<Long, AugSocketColor> sockets = null;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -256,7 +261,6 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
         return retval;
     }
 
-    
     private Character parseCharacters(URL charUrl) throws DCUOException {
         Character character = new Character();
 
@@ -411,7 +415,18 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
     public Map<Long, Item> getItems() throws DCUOException {
         Map<Long, Item> retval = null;
         try {
-            retval = parseItems(new URL(itemsUrl));
+            if (itemCategories == null) {
+                getItemCategories();
+            }
+
+            for (ItemCategory category : itemCategories.values()) {
+                Map<Long, Item> itemsByCat = parseItems(new URL(itemsUrl + category.getId()));
+                if (retval == null) {
+                    retval = itemsByCat;
+                } else {
+                    retval.putAll(itemsByCat);
+                }
+            }
             addMissingItems(retval);
         } catch (MalformedURLException e) {
             throw new DCUOException(e);
@@ -441,6 +456,10 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
                     itemCategories = getItemCategories();
                 }
 
+                if (sockets == null) {
+                    sockets = getSockets();
+                }
+
                 ItemList itemList = mapper.readValue(itemUrl, ItemList.class);
 
                 for (Item item : itemList.getItem_list()) {
@@ -448,16 +467,28 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
                     if (category != null) {
                         ItemCategory parentCat = itemCategories.get(category.getParentId());
                         if (parentCat != null) {
-                            item.setCategory(parentCat.getName().getEn());
-                            item.setSubCategory(category.getName().getEn());
+                            item.setCategory(parentCat);
+                            item.setSubCategory(category);
                         } else {
-                            item.setCategory(category.getName().getEn());
+                            item.setCategory(category);
                         }
                     }
+
+                    AugSocketColor socket = sockets.get(item.getSocketColorId1());
+                    if (socket != null) {
+                        item.setSocketColor1(socket.getName());
+                    }
+                    socket = sockets.get(item.getSocketColorId2());
+                    if (socket != null) {
+                        item.setSocketColor2(socket.getName());
+                    }
+
                     long alignmentId = item.getAlignmentId();
                     item.setAlignment(Alignment.getById(alignmentId));
 
                     items.put(item.getId(), item);
+
+                    saveIcon(item);
                 }
             } catch (JsonParseException e) {
                 logger.error("Exception: " + e, e);
@@ -496,7 +527,7 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
         }
         return retval;
     }
-    
+
     public League getLeagueById(long id) throws DCUOException {
         League retval = null;
         Map<Long, League> leagueList = null;
@@ -549,12 +580,17 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
         return retval;
     }
 
-    private Map<Long, ItemCategory> getItemCategories() throws DCUOException {
+    public Map<Long, ItemCategory> getItemCategories() throws DCUOException {
         Map<Long, ItemCategory> retval = null;
-        try {
-            retval = parseTypes(new URL(itemCategoriesUrl), ItemCategoryList.class);
-        } catch (MalformedURLException e) {
-            throw new DCUOException(e);
+        if (itemCategories != null) {
+            retval = itemCategories;
+        } else {
+            try {
+                retval = parseTypes(new URL(itemCategoriesUrl), ItemCategoryList.class);
+            } catch (MalformedURLException e) {
+                throw new DCUOException(e);
+            }
+            itemCategories = retval;
         }
         return retval;
     }
@@ -563,6 +599,16 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
         Map<Long, Personality> retval = null;
         try {
             retval = parseTypes(new URL(personalityUrl), PersonalityList.class);
+        } catch (MalformedURLException e) {
+            throw new DCUOException(e);
+        }
+        return retval;
+    }
+
+    private Map<Long, AugSocketColor> getSockets() throws DCUOException {
+        Map<Long, AugSocketColor> retval = null;
+        try {
+            retval = parseTypes(new URL(socketUrl), AugSocketColorList.class);
         } catch (MalformedURLException e) {
             throw new DCUOException(e);
         }
@@ -629,7 +675,10 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
     }
 
     public void saveIcon(Item item) {
-        saveIcon(item.getIconId(), item.getImagePath(), item.getCategory(), item.getSubCategory());
+        ItemCategory category = item.getCategory();
+        ItemCategory subCategory = item.getSubCategory();
+        saveIcon(item.getIconId(), item.getImagePath(), category == null ? "" : category.getCategoryName(),
+                subCategory == null ? "" : subCategory.getCategoryName());
     }
 
     public void saveIcon(Feat feat) {
@@ -642,7 +691,13 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
             String fullImageUrl = serviceHost + path;
             try {
                 if (!out.exists()) {
-                    final BufferedImage image = ImageIO.read(new URL(fullImageUrl));
+                    BufferedImage image = null;
+                    try {
+                        image = ImageIO.read(new URL(fullImageUrl));
+                    } catch (IIOException e) {
+                        image = new BufferedImage(64, 64, BufferedImage.TYPE_INT_RGB);
+                        logger.warn("Exception: " + e.getCause());
+                    }
 
                     if (image != null) {
                         File dir = new File(imageDir + category);
@@ -900,9 +955,9 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
             item.setRequiredCR(30);
             item.setQuality(6);
             item.setIconId(103192);
-            item.setCategoryId(0);
-            item.setCategory("Armor");
-            item.setSubCategory("Utility Belts");
+            item.setCategoryId(2026161);
+            item.setCategory(itemCategories.get(2026163L));
+            item.setSubCategory(itemCategories.get(2026161L));
             item.setSaleValue(2294);
             item.setMitigation(505);
             item.setHealth(1232);

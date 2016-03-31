@@ -6,7 +6,6 @@ public class LeagueRoster extends Type {
     private static final long serialVersionUID = 371660094113238136L;
 
     private long worldId;
-    private long id;
     private long characterId;
     private int rank;
 
@@ -21,11 +20,7 @@ public class LeagueRoster extends Type {
 
     @JsonProperty("guild_id")
     public long getId() {
-        return id;
-    }
-
-    public void setId(long leagueId) {
-        this.id = leagueId;
+        return super.getId();
     }
 
     @JsonProperty("character_id")
@@ -43,6 +38,28 @@ public class LeagueRoster extends Type {
 
     public void setRank(int rank) {
         this.rank = rank;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + (int) (characterId ^ (characterId >>> 32));
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        LeagueRoster other = (LeagueRoster) obj;
+        if (characterId != other.characterId)
+            return false;
+        return true;
     }
 
 }

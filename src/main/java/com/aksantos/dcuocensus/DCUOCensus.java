@@ -32,6 +32,7 @@ import com.aksantos.dcuocensus.models.CharactersItem;
 import com.aksantos.dcuocensus.models.Feat;
 import com.aksantos.dcuocensus.models.FeatComparator;
 import com.aksantos.dcuocensus.models.Item;
+import com.aksantos.dcuocensus.models.ItemCategory;
 import com.aksantos.dcuocensus.models.enums.Alignment;
 import com.aksantos.dcuocensus.models.enums.EquipmentSlot;
 import com.aksantos.dcuocensus.models.enums.MovementMode;
@@ -70,7 +71,7 @@ public class DCUOCensus {
         XLSXWriter xlsxWriter = new XLSXWriter(imageDir);
 
         try {
-            processItems();
+            processItems(xlsxWriter);
 
             Set<Character> sortedCharacters = processCharacters(xlsxWriter);
 
@@ -230,12 +231,16 @@ public class DCUOCensus {
         return feats;
     }
 
-    private void processItems() throws DCUOException {
+    private void processItems(XLSXWriter xlsxWriter) throws DCUOException {
+        Map<Long, ItemCategory> itemCategories = censusClient.getItemCategories();
+        
         items = loadItems();
 
         if (items == null) {
             items = censusClient.getItems();
         }
+        
+        xlsxWriter.writeItems(itemCategories, items);
     }
 
     private static Map<Long, Feat> loadFeats() {
@@ -326,14 +331,16 @@ public class DCUOCensus {
             if (items != null) {
                 item = items.get(charItem.getItemId());
             }
+            /*
             if (item == null) {
                 item = censusClient.getItem(charItem.getItemId());
                 if (item != null && items != null) {
                     items.put(item.getId(), item);
                 }
             }
+            */
             if (item != null) {
-                censusClient.saveIcon(item);
+                //censusClient.saveIcon(item);
                 logger.debug(EquipmentSlot.getById(charItem.getEquipmentSlotId()) + delim + item.getNameEn() + delim
                         + item.getItemLevel());
             } else {

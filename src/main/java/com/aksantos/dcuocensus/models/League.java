@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class League  extends Type {
     private static final long serialVersionUID = -3769961501832352388L;
 
-    private long id;
     private long worldId;
     private String name;
     private String lowerName;
@@ -13,11 +12,7 @@ public class League  extends Type {
 
     @JsonProperty("guild_id")
     public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
+        return super.getId();
     }
 
     @JsonProperty("world_id")

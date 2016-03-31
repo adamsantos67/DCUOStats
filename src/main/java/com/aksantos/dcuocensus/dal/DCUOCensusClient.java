@@ -8,6 +8,7 @@ import com.aksantos.dcuocensus.models.Character;
 import com.aksantos.dcuocensus.models.CharactersItem;
 import com.aksantos.dcuocensus.models.Feat;
 import com.aksantos.dcuocensus.models.Item;
+import com.aksantos.dcuocensus.models.ItemCategory;
 import com.aksantos.dcuocensus.models.League;
 import com.aksantos.dcuocensus.models.LeagueRoster;
 
@@ -27,6 +28,8 @@ public interface DCUOCensusClient {
     long getFeatCompletedCount(Feat feat) throws DCUOException;
 
     Map<Long, Item> getItems() throws DCUOException;
+    
+    Map<Long, ItemCategory> getItemCategories() throws DCUOException;
 
     Item getItem(long itemId) throws DCUOException;
 

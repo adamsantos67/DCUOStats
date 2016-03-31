@@ -1,6 +1,7 @@
 package com.aksantos.dcuocensus.poi;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,6 +37,7 @@ import com.aksantos.dcuocensus.models.Feat;
 import com.aksantos.dcuocensus.models.FeatComparator;
 import com.aksantos.dcuocensus.models.FeatCompletedComparator;
 import com.aksantos.dcuocensus.models.Item;
+import com.aksantos.dcuocensus.models.ItemCategory;
 import com.aksantos.dcuocensus.models.League;
 import com.aksantos.dcuocensus.models.Personality;
 import com.aksantos.dcuocensus.models.enums.Alignment;
@@ -335,6 +337,51 @@ public class XLSXWriter {
         }
     }
 
+    public void writeItems(Map<Long, ItemCategory> itemCategories, Map<Long, Item> items) {
+        for (ItemCategory category : itemCategories.values()) {
+            if (category.getParentId() == 0) {
+                XSSFSheet sheet = wb.createSheet(category.getNameEn() + " Items");
+
+                Row r = null;
+                XSSFCell c = null;
+
+                int rownum = 0;
+
+                writeItemHeaders(sheet, rownum++);
+
+                for (Item item : items.values()) {
+                    if (category.equals(item.getCategory())) {
+                        r = sheet.createRow(rownum++);
+
+                        int cellnum = 0;
+
+                        c = (XSSFCell) r.createCell(cellnum++);
+                        c.setCellStyle(cs);
+                        c.setCellValue("");
+
+                        writeItemRow(sheet, r, rownum, cellnum, item);
+                    }
+                }
+            }
+        }
+    }
+
+    private int writeItemHeaders(Sheet sheet, int rownum) {
+        Row r = sheet.createRow(rownum);
+
+        int cellnum = 0;
+        String headers[] = { "Slot", "Im", "Name", "Level", "Category", "Sub-Category", "Quality", "Role", "Alignment",
+                "Gender", "Sale Value", "DPS", "Health", "Power", "Might", "Precision", "Restoration", "Vitalization",
+                "Dominance", "Socket1", "Socket2", "Id" };
+
+        for (String header : headers) {
+            XSSFCell c = (XSSFCell) r.createCell(cellnum++);
+            c.setCellStyle(cs1);
+            c.setCellValue(header);
+        }
+        return headers.length;
+    }
+
     public void writeCharacterItems(Collection<Character> characters, Map<Long, Item> items) {
         XSSFSheet sheet = wb.createSheet("CharacterItems");
 
@@ -342,23 +389,13 @@ public class XLSXWriter {
         XSSFCell c = null;
 
         int rownum = 0;
-        r = sheet.createRow(rownum++);
 
-        int cellnum = 0;
-        String headers[] = { "Slot", "Im", "Name", "Level", "Category", "Sub-Category", "Quality", "Role", "Alignment",
-                "Sale Value", "DPS", "Health", "Power", "Might", "Precision", "Restoration", "Vitalization",
-                "Dominance", "Id" };
-
-        for (String header : headers) {
-            c = (XSSFCell) r.createCell(cellnum++);
-            c.setCellStyle(cs1);
-            c.setCellValue(header);
-        }
+        int rowLen = writeItemHeaders(sheet, rownum++);
 
         for (Character character : characters) {
             r = sheet.createRow(rownum++);
 
-            cellnum = 0;
+            int cellnum = 0;
 
             c = (XSSFCell) r.createCell(cellnum++);
             c.setCellStyle(csBold);
@@ -377,7 +414,7 @@ public class XLSXWriter {
                 Item item = items.get(itemId);
 
                 if (item == null) {
-                    c = (XSSFCell) r.createCell(headers.length - 1);
+                    c = (XSSFCell) r.createCell(rowLen - 1);
                     c.setCellStyle(csNumeric);
                     c.setCellValue(itemId);
                 } else {
@@ -401,11 +438,17 @@ public class XLSXWriter {
         XSSFCell c;
         if (item.getIconId() > 0) {
             try {
-                new AddDimensionedImage()
-                        .addImageToSheet(cellnum++, rownum - 1, sheet,
-                                sheet.createDrawingPatriarch(), new File(imageDir + item.getCategory() + "/"
-                                        + item.getSubCategory() + item.getIconId() + ".png").toURI().toURL(),
-                                24, 24, AddDimensionedImage.EXPAND_ROW_AND_COLUMN);
+                ItemCategory category = item.getCategory();
+                ItemCategory subCategory = item.getSubCategory();
+                try {
+                new AddDimensionedImage().addImageToSheet(cellnum++, rownum - 1, sheet, sheet.createDrawingPatriarch(),
+                        new File(imageDir + (category == null ? "" : category.getCategoryName()) + "/"
+                                + (subCategory == null ? "" : subCategory.getCategoryName()) + item.getIconId()
+                                + ".png").toURI().toURL(),
+                        24, 24, AddDimensionedImage.EXPAND_ROW_AND_COLUMN);
+                } catch (FileNotFoundException e) {
+                    logger.warn("Exception: " + e);
+                }
                 c = (XSSFCell) r.createCell(cellnum - 1);
                 if (c != null) {
                     switch (item.getQuality()) {
@@ -448,11 +491,15 @@ public class XLSXWriter {
 
         c = (XSSFCell) r.createCell(cellnum++);
         c.setCellStyle(cs);
-        c.setCellValue(item.getCategory());
+        if (item.getCategory() != null) {
+            c.setCellValue(item.getCategory().getNameEn());
+        }
 
         c = (XSSFCell) r.createCell(cellnum++);
         c.setCellStyle(cs);
-        c.setCellValue(item.getSubCategory());
+        if (item.getSubCategory() != null) {
+            c.setCellValue(item.getSubCategory().getNameEn());
+        }
 
         c = (XSSFCell) r.createCell(cellnum++);
         c.setCellStyle(csNumeric);
@@ -479,6 +526,17 @@ public class XLSXWriter {
             c.setCellValue(align.toString());
         }
 
+        c = (XSSFCell) r.createCell(cellnum++);
+        if (item.isMale() && !item.isFemale()) {
+            c.setCellStyle(csPaleBlue);
+            c.setCellValue(Gender.male.toString());
+        } else if (item.isFemale() && !item.isMale()) {
+            c.setCellStyle(csRose);
+            c.setCellValue(Gender.female.toString());
+        } else {
+            c.setCellStyle(cs);
+        }
+
         addLongValue(r, cellnum++, item.getSaleValue());
 
         c = (XSSFCell) r.createCell(cellnum++);
@@ -502,9 +560,36 @@ public class XLSXWriter {
 
         addLongValue(r, cellnum++, item.getDominance());
 
+        addSocketColor(r, cellnum++, item.getSocketColor1());
+
+        addSocketColor(r, cellnum++, item.getSocketColor2());
+
         c = (XSSFCell) r.createCell(cellnum++);
         c.setCellStyle(csNumeric);
         c.setCellValue(item.getId());
+    }
+
+    private void addSocketColor(Row r, int cellnum, String socketColor) {
+        XSSFCell c = (XSSFCell) r.createCell(cellnum);
+        switch (socketColor) {
+        case "Blue":
+            c.setCellStyle(csLightBlue);
+            break;
+        case "Red":
+            c.setCellStyle(csRed);
+            break;
+        case "Yellow":
+            c.setCellStyle(csYellow);
+            break;
+        case "Invalid":
+            socketColor = "";
+            c.setCellStyle(cs);
+            break;
+        default:
+            c.setCellStyle(cs);
+            break;
+        }
+        c.setCellValue(socketColor);
     }
 
     private void addLongValue(Row r, int cellnum, long val) {
@@ -526,9 +611,9 @@ public class XLSXWriter {
         r = sheet.createRow(rownum++);
 
         int cellnum = 0;
-        String headers[] = { "Img.", "Name", "League", "Level", "CR", "SP", "PvP CR", "Power", "Role", "Move", "Faction",
-                "Personality", "Gender", "Origin", "Mentor", "Weapon", "Health", "Power", "Defense", "Tough", "Might",
-                "Prec", "Rest", "Vit", "Dom", "Max Feats", "Id" };
+        String headers[] = { "Img.", "Name", "League", "Level", "CR", "SP", "PvP CR", "Power", "Role", "Move",
+                "Faction", "Personality", "Gender", "Origin", "Mentor", "Weapon", "Health", "Power", "Defense", "Tough",
+                "Might", "Prec", "Rest", "Vit", "Dom", "Max Feats", "Id" };
 
         for (String header : headers) {
             c = (XSSFCell) r.createCell(cellnum++);

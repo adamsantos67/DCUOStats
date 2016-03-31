@@ -9,23 +9,23 @@ public class Item extends Type implements Serializable {
     private static final long serialVersionUID = -9057980617299260200L;
 
     private String codeName;
-    private Name name;
+    private Name name;              // Name
     private int minLevel = 0;
-    private int itemLevel = 0;
+    private int itemLevel = 0;      // Level
     private int charges = 0;
     private boolean magic = true;
     private boolean meta = true;
     private boolean tech = true;
-    private long alignmentId = 0;
-    private Alignment alignment = null;
-    private boolean controller = true;
-    private boolean tank = true;
-    private boolean healer = true;
+    private long alignmentId = 0;  
+    private Alignment alignment = null;  // Alignment
+    private boolean controller = true;   // Role
+    private boolean tank = true;         // Role
+    private boolean healer = true;       // Role
     private boolean male = true;
     private boolean female = true;
     private long categoryId = 0;
-    private String category = "";
-    private String subCategory = "";
+    private ItemCategory category = null;
+    private ItemCategory subCategory = null;
     private int quality = 0;
     private long iconId = 0;
     private String imagePath = null;
@@ -54,8 +54,10 @@ public class Item extends Type implements Serializable {
     private int itemType = 0;
     private int requiredCR = 0;
     private int pvpLevel = 0;
-    private int socketColorId1 = 0;
-    private int socketColorId2 = 0;
+    private long socketColorId1 = 0;
+    private String socketColor1 = "";
+    private long socketColorId2 = 0;
+    private String socketColor2 = "";
     private boolean currency = false;
     private long factionId = 0;
 
@@ -206,19 +208,19 @@ public class Item extends Type implements Serializable {
         this.categoryId = itemCategoryId;
     }
 
-    public String getCategory() {
+    public ItemCategory getCategory() {
         return category;
     }
 
-    public void setCategory(String category) {
+    public void setCategory(ItemCategory category) {
         this.category = category;
     }
 
-    public String getSubCategory() {
+    public ItemCategory getSubCategory() {
         return subCategory;
     }
 
-    public void setSubCategory(String subCategory) {
+    public void setSubCategory(ItemCategory subCategory) {
         this.subCategory = subCategory;
     }
 
@@ -448,20 +450,20 @@ public class Item extends Type implements Serializable {
     }
 
     @JsonProperty("aug_socket_color_id_1")
-    public int getSocketColorId1() {
+    public long getSocketColorId1() {
         return socketColorId1;
     }
 
-    public void setSocketColorId1(int socketColorId1) {
+    public void setSocketColorId1(long socketColorId1) {
         this.socketColorId1 = socketColorId1;
     }
 
     @JsonProperty("aug_socket_color_id_2")
-    public int getSocketColorId2() {
+    public long getSocketColorId2() {
         return socketColorId2;
     }
 
-    public void setSocketColorId2(int socketColorId2) {
+    public void setSocketColorId2(long socketColorId2) {
         this.socketColorId2 = socketColorId2;
     }
 
@@ -481,5 +483,21 @@ public class Item extends Type implements Serializable {
 
     public void setFactionId(long factionId) {
         this.factionId = factionId;
+    }
+
+    public String getSocketColor1() {
+        return socketColor1;
+    }
+
+    public void setSocketColor1(String socketColor1) {
+        this.socketColor1 = socketColor1;
+    }
+
+    public String getSocketColor2() {
+        return socketColor2;
+    }
+
+    public void setSocketColor2(String socketColor2) {
+        this.socketColor2 = socketColor2;
     }
 }
