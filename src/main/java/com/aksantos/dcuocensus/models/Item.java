@@ -6,7 +6,7 @@ import com.aksantos.dcuocensus.models.enums.Alignment;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Item extends Type implements Serializable {
-    private static final long serialVersionUID = -9057980617299260200L;
+    private static final long serialVersionUID = 9123423321411964569L;
 
     private String codeName;
     private Name name;              // Name
@@ -36,15 +36,15 @@ public class Item extends Type implements Serializable {
     private long saleValue = 0;
     private double dps = 0.0;
     private long health = 0;
-    private long fatigue = 0;
-    private long basicAttack = 0;
-    private long finisherAttack = 0;
-    private long movement = 0;
-    private long mitigation = 0;
-    private long resilience = 0;
     private long power = 0;
-    private long heal = 0;
-    private long powerHeal = 0;
+    private long precision = 0;
+    private long might = 0;
+    private long movement = 0;
+    private long defense = 0;
+    private long resilience = 0;
+    private long powerPool = 0;
+    private long restoration = 0;
+    private long vitalization = 0;
     private long dominance = 0;
 
     private int manufacturer = 0;
@@ -295,30 +295,30 @@ public class Item extends Type implements Serializable {
     }
 
     @JsonProperty("stat_fatigue_pool")
-    public long getFatigue() {
-        return fatigue;
+    public long getPower() {
+        return power;
     }
 
-    public void setFatigue(long fatigue) {
-        this.fatigue = fatigue;
+    public void setPower(long power) {
+        this.power = power;
     }
 
     @JsonProperty("stat_basic_attack")
-    public long getBasicAttack() {
-        return basicAttack;
+    public long getPrecision() {
+        return precision;
     }
 
-    public void setBasicAttack(long basicAttack) {
-        this.basicAttack = basicAttack;
+    public void setPrecision(long precision) {
+        this.precision = precision;
     }
 
     @JsonProperty("stat_finisher_attack")
-    public long getFinisherAttack() {
-        return finisherAttack;
+    public long getMight() {
+        return might;
     }
 
-    public void setFinisherAttack(long finisherAttack) {
-        this.finisherAttack = finisherAttack;
+    public void setMight(long might) {
+        this.might = might;
     }
 
     @JsonProperty("stat_movement")
@@ -331,12 +331,12 @@ public class Item extends Type implements Serializable {
     }
 
     @JsonProperty("stat_mitigation")
-    public long getMitigation() {
-        return mitigation;
+    public long getDefense() {
+        return defense;
     }
 
-    public void setMitigation(long mitigation) {
-        this.mitigation = mitigation;
+    public void setDefense(long defense) {
+        this.defense = defense;
     }
 
     @JsonProperty("stat_resilience")
@@ -349,30 +349,30 @@ public class Item extends Type implements Serializable {
     }
 
     @JsonProperty("stat_power_pool")
-    public long getPower() {
-        return power;
+    public long getPowerPool() {
+        return powerPool;
     }
 
-    public void setPower(long power) {
-        this.power = power;
+    public void setPowerPool(long powerPool) {
+        this.powerPool = powerPool;
     }
 
     @JsonProperty("stat_heal")
-    public long getHeal() {
-        return heal;
+    public long getRestoration() {
+        return restoration;
     }
 
-    public void setHeal(long heal) {
-        this.heal = heal;
+    public void setRestoration(long restoration) {
+        this.restoration = restoration;
     }
 
     @JsonProperty("stat_power_heal")
-    public long getPowerHeal() {
-        return powerHeal;
+    public long getVitalization() {
+        return vitalization;
     }
 
-    public void setPowerHeal(long powerHeal) {
-        this.powerHeal = powerHeal;
+    public void setVitalization(long vitalization) {
+        this.vitalization = vitalization;
     }
 
     @JsonProperty("stat_dominance")

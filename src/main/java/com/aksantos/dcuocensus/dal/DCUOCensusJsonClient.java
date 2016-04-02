@@ -959,13 +959,13 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
             item.setCategory(itemCategories.get(2026163L));
             item.setSubCategory(itemCategories.get(2026161L));
             item.setSaleValue(2294);
-            item.setMitigation(505);
+            item.setDefense(505);
             item.setHealth(1232);
             item.setPower(474);
-            item.setFinisherAttack(188);
-            item.setBasicAttack(480);
-            item.setHeal(501);
-            item.setPowerHeal(324);
+            item.setMight(188);
+            item.setPrecision(480);
+            item.setRestoration(501);
+            item.setVitalization(324);
             item.setDominance(91);
             item.setNoTrade(true);
             items.put(item.getId(), item);

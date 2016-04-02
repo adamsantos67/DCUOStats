@@ -370,9 +370,10 @@ public class XLSXWriter {
         Row r = sheet.createRow(rownum);
 
         int cellnum = 0;
-        String headers[] = { "Slot", "Im", "Name", "Level", "Category", "Sub-Category", "Quality", "Role", "Alignment",
-                "Gender", "Sale Value", "DPS", "Health", "Power", "Might", "Precision", "Restoration", "Vitalization",
-                "Dominance", "Socket1", "Socket2", "Id" };
+        String headers[] = { "Slot", "Im", "Name", "Level", "PvP Level", "Min CR", "Category", "Sub-Category",
+                "Quality", "Role", "Alignment", "Gender", "No Trade", "No Sale", "Sale Value", "DPS", "Defense",
+                "Toughness", "Health", "Power Pool", "Movement", "Power", "Might", "Precision", "Restoration",
+                "Vitalization", "Dominance", "Socket1", "Socket2", "Id" };
 
         for (String header : headers) {
             XSSFCell c = (XSSFCell) r.createCell(cellnum++);
@@ -441,11 +442,12 @@ public class XLSXWriter {
                 ItemCategory category = item.getCategory();
                 ItemCategory subCategory = item.getSubCategory();
                 try {
-                new AddDimensionedImage().addImageToSheet(cellnum++, rownum - 1, sheet, sheet.createDrawingPatriarch(),
-                        new File(imageDir + (category == null ? "" : category.getCategoryName()) + "/"
-                                + (subCategory == null ? "" : subCategory.getCategoryName()) + item.getIconId()
-                                + ".png").toURI().toURL(),
-                        24, 24, AddDimensionedImage.EXPAND_ROW_AND_COLUMN);
+                    new AddDimensionedImage().addImageToSheet(cellnum++, rownum - 1, sheet,
+                            sheet.createDrawingPatriarch(),
+                            new File(imageDir + (category == null ? "" : category.getCategoryName()) + "/"
+                                    + (subCategory == null ? "" : subCategory.getCategoryName()) + item.getIconId()
+                                    + ".png").toURI().toURL(),
+                            24, 24, AddDimensionedImage.EXPAND_ROW_AND_COLUMN);
                 } catch (FileNotFoundException e) {
                     logger.warn("Exception: " + e);
                 }
@@ -488,6 +490,14 @@ public class XLSXWriter {
         c = (XSSFCell) r.createCell(cellnum++);
         c.setCellStyle(csNumeric);
         c.setCellValue(item.getItemLevel());
+
+        c = (XSSFCell) r.createCell(cellnum++);
+        c.setCellStyle(csNumeric);
+        c.setCellValue(item.getPvpLevel());
+
+        c = (XSSFCell) r.createCell(cellnum++);
+        c.setCellStyle(csNumeric);
+        c.setCellValue(item.getRequiredCR());
 
         c = (XSSFCell) r.createCell(cellnum++);
         c.setCellStyle(cs);
@@ -537,6 +547,22 @@ public class XLSXWriter {
             c.setCellStyle(cs);
         }
 
+        c = (XSSFCell) r.createCell(cellnum++);
+        c.setCellStyle(cs);
+        boolean noTrade = item.isNoTrade();
+        if (noTrade) {
+            c.setCellStyle(csRed);
+            c.setCellValue(noTrade);
+        }
+
+        c = (XSSFCell) r.createCell(cellnum++);
+        c.setCellStyle(cs);
+        boolean noSale = item.isNoSale();
+        if (noSale) {
+            c.setCellStyle(csRed);
+            c.setCellValue(noSale);
+        }
+
         addLongValue(r, cellnum++, item.getSaleValue());
 
         c = (XSSFCell) r.createCell(cellnum++);
@@ -546,17 +572,25 @@ public class XLSXWriter {
             c.setCellValue(item.getDps());
         }
 
+        addLongValue(r, cellnum++, item.getDefense());
+
+        addLongValue(r, cellnum++, item.getResilience());
+
         addLongValue(r, cellnum++, item.getHealth());
+
+        addLongValue(r, cellnum++, item.getPowerPool());
+
+        addLongValue(r, cellnum++, item.getMovement());
 
         addLongValue(r, cellnum++, item.getPower());
 
-        addLongValue(r, cellnum++, item.getFinisherAttack());
+        addLongValue(r, cellnum++, item.getMight());
 
-        addLongValue(r, cellnum++, item.getBasicAttack());
+        addLongValue(r, cellnum++, item.getPrecision());
 
-        addLongValue(r, cellnum++, item.getHeal());
+        addLongValue(r, cellnum++, item.getRestoration());
 
-        addLongValue(r, cellnum++, item.getPowerHeal());
+        addLongValue(r, cellnum++, item.getVitalization());
 
         addLongValue(r, cellnum++, item.getDominance());
 
