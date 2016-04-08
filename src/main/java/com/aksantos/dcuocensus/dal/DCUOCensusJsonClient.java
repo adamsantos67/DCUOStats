@@ -831,7 +831,8 @@ public class DCUOCensusJsonClient implements DCUOCensusClient {
                 "Collect any 8 Base Items from the 2016 St. Patrick's Day event", 10, IconId.ST_PATRICKS);
         addFeat(feats, 3302238, "Seasonal", "St. Patrick's Day", 100, 20, "Shamrock & Roll", "Use 20 Clover Bombs", 10,
                 IconId.ST_PATRICKS);
-
+        addFeat(feats, 3303136, "Episodes", "Brainiac's Bottle Ship & Will of Darkseid", 150, 220, "WoD",
+                "During the Will of Darkseid Operation,", 10, IconId.DUOS);
     }
 
     private static void addWTTeamUp(Map<Long, Feat> feats, long id, String team) {

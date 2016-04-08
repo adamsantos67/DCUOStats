@@ -61,6 +61,7 @@ public class Character extends Type {
     private boolean active;
     private boolean deleted;
     private String hash;
+    private long titleId;
 
     private Set<Long> completedFeats;
     private Set<Long> unlockableFeats = new TreeSet<Long>();
@@ -504,6 +505,19 @@ public class Character extends Type {
 
     public void setLeague(League league) {
         this.league = league;
+    }
+
+    @JsonProperty("title_id")
+    public long getTitleId() {
+        return titleId;
+    }
+
+    public void setTitleId(long titleId) {
+        this.titleId = titleId;
+    }
+
+    public static long getSerialversionuid() {
+        return serialVersionUID;
     }
 
 }
